@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tour Info</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'recommend/css/tour_info.css' %}">
+</head>
+<body>
+
+    <!-- Include the Navbar -->
+    {% include 'navbar.html' %}
+
+    <div class="tour-info">
+        <h1>{{ visit.visit_name }}</h1>
+        <div class="tour-stats">
+            <span>👁️ {{ visit_count|default:0 }}</span>
+            <span>⭐ {{ rating|default:0 }}</span>
+        </div>
+
+        {% if visit.photos %}
+            <img src="{{ visit.photos }}" alt="{{ visit.visit_name }}" class="tour-image">
+        {% else %}
+            <img src="{% static 'recommend/images/no_image.png' %}" alt="{{ visit.visit_name }}" class="tour-image">
+        {% endif %}
+
+        <p>주소 : {{ visit.address }}</p>
+        <p>추가 정보가 없어요....</p>
+    </div>
+
+    <div class="related-spots-section">
+        <h3>연관 방문지 추천</h3>
+        <div class="related-spots-container">
+            <button class="scroll-button left" id="scrollLeft">
+                <span class="arrow">&#10094;</span>
+            </button>
+
+            <div class="related-spots-wrapper">
+                <div class="related-spot-list">
+                    {% for spot in related_spots %}
+                    <div class="related-spot-item">
+                        <a href="{% url 'recommend:tour_info' spot.visit.id %}" class="related-spot-link">
+                            <div class="related-spot">
+                                {% if spot.visit.photos %}
+                                    <img src="{{ spot.visit.photos.url }}" alt="{{ spot.visit.visit_name }}" class="card-image">
+                                {% else %}
+                                    <img src="{% static 'recommend/images/no_image.png' %}" alt="No image" class="card-image">
+                                {% endif %}
+                                <h3>{{ spot.visit.visit_name }}</h3>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button class="scroll-button right" id="scrollRight">
+                <span class="arrow">&#10095;</span>
+            </button>
+        </div>
+    </div>
+
+
+    <script src="{% static 'recommend/js/tour_info.js' %}"></script>
+
+
+</body>
+</html>

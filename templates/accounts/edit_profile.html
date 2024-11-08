@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로필 수정</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/css/edit_profile.css' %}">
+</head>
+<body>
+    <!-- Include the Navbar -->
+    {% include 'navbar.html' %}
+
+    <div class="container">
+        <h1>프로필 수정</h1>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">사용자 이름:</label>
+                <input type="text" name="username" id="username" value="{{ username }}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="current_password">현재 비밀번호:</label>
+                <input type="password" name="current_password" id="current_password" required>
+            </div>
+            <div class="form-group">
+                <label for="new_password">새 비밀번호:</label>
+                <input type="password" name="new_password" id="new_password">
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">비밀번호 확인:</label>
+                <input type="password" name="confirm_password" id="confirm_password">
+            </div>
+            <div class="form-group">
+                <label for="email">이메일:</label>
+                <input type="email" name="email" id="email" value="{{ form.email.value }}">
+            </div>
+            <div class="form-group">
+                <label for="profile_image">프로필 이미지:</label>
+                <div class="profile-image-container">
+                    {% if user.profile_image %}
+                        <img src="{{ user.profile_image.url }}" alt="현재 프로필 이미지" class="profile-image">
+                    {% else %}
+                        <img src="{% static 'accounts/images/default_profile.png' %}" alt="기본 프로필 이미지" class="profile-image">
+                    {% endif %}
+                </div>
+                <input type="file" name="profile_image" id="profile_image">
+                <br>
+                <button type="button" onclick="location.href='{% url 'accounts:reset_profile_image' %}'">기본 프로필 이미지로 변경</button>
+            </div>
+            <div class="form-group">
+                <label for="short_description">소개글:</label>
+                <textarea name="short_description" id="short_description">{{ form.short_description.value }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="residence_area">거주 지역:</label>
+                <input type="text" name="residence_area" id="residence_area" value="{{ form.residence_area.value }}">
+            </div>
+            <div class="form-group">
+                <label for="gender">성별:</label>
+                <select name="gender" id="gender">
+                    <option value="남" {% if form.gender.value == '남' %}selected{% endif %}>남</option>
+                    <option value="여" {% if form.gender.value == '여' %}selected{% endif %}>여</option>
+                    <option value="기타" {% if form.gender.value == '기타' %}selected{% endif %}>기타</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="age">나이:</label>
+                <input type="number" name="age" id="age" value="{{ form.age.value }}" min="0">
+            </div>
+            <button type="submit">수정하기</button>
+        </form>
+    </div>
+</body>
+</html>

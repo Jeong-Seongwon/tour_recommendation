@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Recommendations</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'recommend/css/tours.css' %}">
+</head>
+<body>
+
+    <!-- Include the Navbar -->
+    {% include 'navbar.html' %}
+
+    <div class="content">
+        <div class="section">
+            <h1>Popular Tours</h1>
+            <div class="tour-container" id="tour-list">
+                <!-- Tours will be loaded here -->
+            </div>
+            <div class="loading" id="loading">
+                <p>Loading more tours...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+        let currentPage = 1;
+        let isLoading = false;
+        let hasMore = true;
+
+        // 초기 로드
+        loadMoreCustomers();
+
+        // 스크롤 이벤트 리스너
+        window.addEventListener('scroll', () => {
+            if (isLoading || !hasMore) return;
+
+            // 페이지 끝에 도달했는지 확인
+            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+                loadMoreCustomers();
+            }
+        });
+
+        function loadMoreCustomers() {
+            if (isLoading || !hasMore) return;
+
+            isLoading = true;
+            $('#loading').show();
+
+            $.ajax({
+                url: "{% url 'recommend:recommend_tours' %}",
+                method: "GET",
+                data: { page: currentPage },
+                success: function(data) {
+                    if (currentPage === 1) {
+                        $('#tour-list').html(data.customers_html);
+                    } else {
+                        $('#tour-list').append(data.customers_html);
+                    }
+
+                    hasMore = data.has_next;
+                    if (hasMore) {
+                        currentPage = data.next_page;
+                    }
+                },
+                error: function(error) {
+                    console.error("Error loading tours:", error);
+                },
+                complete: function() {
+                    isLoading = false;
+                    $('#loading').hide();
+                }
+            });
+        }
+
+        // 이미지 로드 실패시 대체 이미지 표시
+        document.addEventListener('error', function(e) {
+            if (e.target.tagName.toLowerCase() === 'img') {
+                e.target.src = '{% static "recommend/images/no_image.png" %}';
+            }
+        }, true);
+    </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Main Page</title>
+
+  {% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'main/css/main.css' %}">
+
+</head>
+<body>
+   <!-- Include the Navbar -->
+  {% include 'navbar.html' %}
+
+    <div class="chat-div">
+        <h1>Search</h1>
+        <form id="chatbot-form" method="POST" action="{% url 'chatbot:chatbot' %}">
+            {% csrf_token %}
+            <input type="text" id="user-input" name="user-input" required placeholder="관광지에 대해 질문하세요">
+            <button type="submit" id="send-button">검색</button>
+        </form>
+    </div>
+
+
+    <!-- Main Content (Top-rated movies and customer recommendations) -->
+    <div class="content">
+
+        <!-- Section 1 : Top Rated Movies -->
+        <div class="section">
+            <h1>Top Rated Tours <a href="{% url 'recommend:tour' %}" class="more-link">더보기</a></h1>
+            <button class="scroll-button left" id="scroll-left">&#10094;</button>
+            <button class="scroll-button right" id="scroll-right">&#10095;</button>
+            <div class="tour-container" id="tour-list">
+                <!-- AJAX로 로드할 여행 데이터 -->
+                <p>Loading tours...</p>
+            </div>
+        </div>
+
+
+        <!-- Section 2 : Customer Recommendations -->
+        <div class="section">
+            <h1>Customer Recommendations <a href="{% url 'recommend:customer' %}" class="more-link">더보기</a></h1>
+            <button class="scroll-button left" id="scroll-left-customers">&#10094;</button>
+            <button class="scroll-button right" id="scroll-right-customers">&#10095;</button>
+            <div class="customer-container" id="customer-list">
+                <p id="loading-message" style="display: none;">Loading recommendations...</p> <!-- 로딩 메시지 추가 -->
+                <div id="customer-data">
+                    <p>Loading recommendations...</p>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- Include jQuery for AJAX functionality -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+        // AJAX로 영화 목록 가져오기
+        function loadPopTours() {
+            $.ajax({
+                url: "{% url 'recommend:pop_tours' %}", // Django 뷰로 AJAX 요청
+                method: "GET",
+                success: function(data) {
+                    $('#tour-list').html(data.tours_html); // AJAX로 가져온 HTML을 삽입
+                },
+                error: function(error) {
+                    $('#tour-list').html("<p>Error loading tours</p>");
+                }
+            });
+        }
+
+        loadPopTours()
+
+
+        // JavaScript for scrolling functionality
+        function scrollLeft() {
+            document.getElementById('tour-list').scrollBy({
+                left: -300, // Scrolls left by 300px
+                behavior: 'smooth'
+            });
+        }
+
+        function scrollRight() {
+            document.getElementById('tour-list').scrollBy({
+                left: 300, // Scrolls right by 300px
+                behavior: 'smooth'
+            });
+        }
+
+        // Attach event listeners to scroll buttons
+        document.getElementById('scroll-left').addEventListener('click', scrollLeft);
+        document.getElementById('scroll-right').addEventListener('click', scrollRight);
+
+
+
+
+        // AJAX로 고객 추천 목록 가져오기
+        function loadCustomers() {
+            // AJAX 요청
+            $.ajax({
+                url: `{% url 'recommend:recommend_tours' %}`, // 모델을 쿼리로 전달
+                method: "GET",
+                success: function(data) {
+                    $('#customer-list').html(data.customers_html); // AJAX로 가져온 HTML을 삽입
+                },
+                error: function(error) {
+                    $('#customer-list').html("<p>Error loading recommendations</p>"); // 오류 메시지
+                }
+            });
+        }
+
+        loadCustomers()
+
+        // JavaScript for scrolling functionality
+        function recommend_scrollLeft() {
+            document.getElementById('customer-list').scrollBy({
+                left: -300, // Scrolls left by 300px
+                behavior: 'smooth'
+            });
+        }
+
+        function recommend_scrollRight() {
+            document.getElementById('customer-list').scrollBy({
+                left: 300, // Scrolls right by 300px
+                behavior: 'smooth'
+            });
+        }
+
+        // Attach event listeners to scroll buttons
+        document.getElementById('scroll-left-customers').addEventListener('click', recommend_scrollLeft);
+        document.getElementById('scroll-right-customers').addEventListener('click', recommend_scrollRight);
+
+    </script>
+</body>
+</html>

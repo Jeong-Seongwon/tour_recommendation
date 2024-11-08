@@ -1,0 +1,20 @@
+{% load static %}
+
+{% for item in recommendations_with_count %}
+<div class="tour-card">
+    <a href="{% url 'recommend:tour_info' item.recommendation.visit.id %}" class="tour-card-link">
+        {% if item.recommendation.visit.photos %}
+            <img src="{{ item.recommendation.visit.photos }}" alt="{{ item.recommendation.visit.visit_name }}" class="tour-image">
+        {% else %}
+            <img src="{% static 'recommend/images/no_image.png' %}" alt="{{ item.recommendation.visit.visit_name }}" class="tour-image">
+        {% endif %}
+        <div class="tour-info">
+            <h3 class="tour-title">{{ item.recommendation.visit.visit_name }}</h3>
+            <div class="tour-stats">
+                <span>👁️ {{ item.visit_count|default:0 }}</span>
+                <span>⭐ {{ item.rating|default:0 }}</span>
+            </div>
+        </div>
+    </a>
+</div>
+{% endfor %}

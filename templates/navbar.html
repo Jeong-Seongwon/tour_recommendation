@@ -1,0 +1,30 @@
+<nav class="navbar">
+   <div class="navbar-container">
+       <a href="{% url 'main' %}" class="navbar-brand">Home</a>
+       <a href="{% url 'recommend:tour' %}" class="navbar-menu">Popular Tour</a>
+       <a href="{% url 'recommend:customer' %}" class="navbar-menu">Recommend Tour</a>
+       <a href="{% url 'chatbot:chatbot' %}" class="navbar-menu">ChatBot</a>
+       <a href="{% url 'chart:chart' %}" class="navbar-menu">Chart</a>
+       <a href="" class="navbar-menu">Another</a>
+       <div class="navbar-links">
+           {% if user.is_authenticated %}
+               <a href="{% url 'accounts:profile' %}" class="navbar-link">
+                   <div class="navbar-user-info">
+                       <!-- 프로필 이미지 표시 -->
+                       {% if user.profile_image %}
+                           <img src="{{ user.profile_image.url }}" alt="{{ user.username }}'s profile image" class="navbar-profile-image">
+                       {% else %}
+                            <!-- 프로필 이미지가 없을 경우 기본 이미지 표시 -->
+                           <img src="/static/accounts/images/default_profile.png" alt="Default profile image" class="navbar-profile-image">
+                       {% endif %}
+                       <span class="navbar-user">Hello, {{ user.username }}!</span>
+                   </div>
+               </a>
+               <a href="{% url 'accounts:logout' %}" class="navbar-link">Logout</a>
+           {% else %}
+               <a href="{% url 'accounts:login' %}" class="navbar-link">Login</a>
+               <a href="{% url 'accounts:signup' %}" class="navbar-link">Sign Up</a>
+           {% endif %}
+       </div>
+   </div>
+</nav>

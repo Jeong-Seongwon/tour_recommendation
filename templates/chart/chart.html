@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'chart/css/chart.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <h1>여행 통계 차트</h1>
+
+    <!-- 차트 버튼들 -->
+    <div class="chart-buttons">
+        <button class="chart-toggle-btn" data-chart="travelPurposeChart">여행 목적</button>
+        <button class="chart-toggle-btn" data-chart="travelDurationChart">여행 기간</button>
+        <button class="chart-toggle-btn" data-chart="movementChart">이동 수단</button>
+        <button class="chart-toggle-btn" data-chart="relationshipChart">동반자</button>
+        <button class="chart-toggle-btn" data-chart="expenseChart">카테고리별 소비</button>
+        <button class="chart-toggle-btn" data-chart="cityTravelChart">시,군,구 별 여행</button>
+        <button class="chart-toggle-btn" data-chart="cityExpenseChart">시,군,구 별 평균 소비</button>
+    </div>
+
+    <div class="chart-sections">
+        <!-- 차트들 -->
+        <div class="chart-section" id="travelPurposeChartSection">
+            <h2>여행 목적 별 통계</h2>
+            <canvas id="travelPurposeChart"></canvas>
+        </div>
+
+        <div class="chart-section" id="travelDurationChartSection">
+            <h2>여행 기간 통계</h2>
+            <canvas id="travelDurationChart"></canvas>
+        </div>
+
+        <div class="chart-section" id="movementChartSection">
+            <h2>이동 수단 차트</h2>
+            <canvas id="movementChart"></canvas>
+        </div>
+
+        <div class="chart-section" id="relationshipChartSection">
+            <h2>동반자 수 차트</h2>
+            <canvas id="relationshipChart"></canvas>
+        </div>
+
+        <div class="chart-section" id="expenseChartSection">
+            <h2>소비 카테고리별 금액 차트</h2>
+            <canvas id="expenseChart"></canvas>
+        </div>
+
+        <div class="chart-section" id="cityTravelChartSection">
+            <h2>시, 군, 구 별 여행 수 차트</h2>
+            <canvas id="cityTravelChart"></canvas>
+        </div>
+
+        <div class="chart-section" id="cityExpenseChartSection">
+            <h2>시, 군, 구 별 평균 소비 금액 차트</h2>
+            <canvas id="cityExpenseChart"></canvas>
+        </div>
+    </div>
+
+
+    <script src="{% static 'chart/js/randomColor.js' %}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chartSections = document.querySelectorAll('.chart-section');
+            const chartButtons = document.querySelectorAll('.chart-toggle-btn');
+
+            // 차트 초기화
+            const chartInstances = {};
+
+            function renderChart(chartId, type, labels, data, label) {
+                const ctx = document.getElementById(chartId).getContext('2d');
+
+                if (chartInstances[chartId]) {
+                    chartInstances[chartId].destroy();
+                }
+
+                // type에 따라 borderWidth 설정
+                const borderWidth = (type === 'pie' || type === 'doughnut') ? 0 : 1;
+
+                // 차트 옵션
+                const options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    hoverOffset: 10  // 마우스 올렸을 때 간격 조정
+                };
+
+                // 파이와 도넛 차트일 때는 scales 옵션을 제외
+                if (type !== 'pie' && type !== 'doughnut') {
+                    options.scales = {
+                        y: {
+                            beginAtZero: true
+                        }
+                    };
+                }
+
+                chartInstances[chartId] = new Chart(ctx, {
+                    type: type,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: label,
+                            data: data,
+                            backgroundColor: data.map(() => randomColor({ luminosity: 'light' })),  // 임의의 밝은 색상 생성
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: borderWidth,  // 경계선 너비 설정 (파이와 도넛 차트는 0)
+                        }]
+                    },
+                    options: options  // 옵션 적용
+                });
+            }
+
+            // 버튼 클릭 이벤트 핸들러
+            chartButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const chartType = button.dataset.chart;
+
+                    // 모든 버튼, 차트에서 active 클래스 제거
+                    chartButtons.forEach(btn => btn.classList.remove('active'));
+                    chartSections.forEach(section => section.classList.remove('active'));
+
+                    // 현재 클릭된 버튼, 차트에 active 클래스 추가
+                    button.classList.add('active');
+                    document.getElementById(`${chartType}Section`).classList.add('active');
+                });
+            });
+
+            // 데이터 로드 및 차트 생성
+            fetch("{% url 'chart:travel_statistics' %}")
+                .then(response => response.json())
+                .then(data => {
+                    renderChart('travelPurposeChart', 'bar',
+                        Object.keys(data.travel_purpose_counts),
+                        Object.values(data.travel_purpose_counts),
+                        '여행 목적 수'
+                    );
+
+                    renderChart('travelDurationChart', 'bar',
+                        Object.keys(data.duration_counts),
+                        Object.values(data.duration_counts),
+                        '여행 기간'
+                    );
+
+                    renderChart('movementChart', 'pie',
+                        data.movement_counts.map(item => item.movement_name),
+                        data.movement_counts.map(item => item.count),
+                        '이동 수단'
+                    );
+
+                    renderChart('relationshipChart', 'line',
+                        data.companion_counts.map(item => item.companion_num),
+                        data.companion_counts.map(item => item.count),
+                        '동반자 수'
+                    );
+
+                    renderChart('expenseChart', 'doughnut',
+                        data.expense_counts.map(item => item.category),
+                        data.expense_counts.map(item => item.total_amount),
+                        '소비 카테고리별 금액'
+                    );
+
+                    renderChart('cityTravelChart', 'bar',
+                        Object.keys(data.city_counts),
+                        Object.values(data.city_counts),
+                        '시, 군, 구 별 여행 수'
+                    );
+
+                    renderChart('cityExpenseChart', 'bar',
+                        Object.keys(data.visit_expense),
+                        Object.values(data.visit_expense),
+                        '시, 군, 구 별 평균 소비 금액'
+                    );
+
+                    // 초기 상태로 첫 번째 버튼과 차트 활성화
+                    chartButtons[0].click();
+                })
+                .catch(error => console.error('Error fetching chart data:', error));
+        });
+
+    </script>
+</body>
+</html>

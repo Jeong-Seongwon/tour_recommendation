@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'chatbot/css/chatbot.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>관광지 챗봇</h2>
+        </div>
+        <div class="chat-box" id="chat-box">
+            <!-- 채팅 메시지가 여기에 표시됩니다 -->
+        </div>
+        <div class="chat-div">
+            <form id="chatbot-form" onsubmit="return false;">
+                {% csrf_token %}
+                <input type="text" id="user-input" name="user-input" required placeholder="관광지에 대해 질문하세요">
+                <button type="submit" id="send-button">검색</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    $(document).ready(function() {
+        // CSRF 토큰 설정
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // 초기 메시지 표시 (main.html에서 넘어온 경우)
+        {% if initial_message %}
+            appendMessage("user-message", "{{ initial_message }}");
+        {% endif %}
+
+        {% if initial_response %}
+            const initialTagsList = [];
+            {% for key, value in initial_response.tags.items %}
+                {% if key == '링크' %}
+                    initialTagsList.push(`<li>{{ key }}: <a href="{{ value }}" target="_blank">{{ value }}</a></li>`);
+                {% else %}
+                    initialTagsList.push(`<li>{{ key }}: {{ value }}</li>`);
+                {% endif %}
+            {% endfor %}
+
+            const initialResultMessage = `
+                <h3>{{ initial_response.touristspot_name|safe }}</h3>
+                <p>주 카테고리: {{ initial_response.main_category|safe }}</p>
+                <p>세부 카테고리: {{ initial_response.second_category|safe }}</p>
+                <p>설명: {{ initial_response.description|safe }}</p>
+                <p>태그:</p>
+                <ul>${initialTagsList.join('')}</ul>
+            `;
+            appendMessage("bot-message", initialResultMessage);
+        {% endif %}
+
+        // Enter 키 이벤트
+        $('#user-input').on('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                $('#send-button').click();
+            }
+        });
+
+        // 폼 제출 이벤트
+        $('#chatbot-form').on('submit', function(event) {
+            event.preventDefault();
+            const query = $('#user-input').val().trim();
+
+            if (!query) return;
+
+            appendMessage("user-message", query);
+            $('#user-input').val('');
+
+            $.ajax({
+                type: "POST",
+                url: "{% url 'chatbot:search_tourist_spot' %}",
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                contentType: "application/json",
+                data: JSON.stringify({ query: query }),
+                success: function(response) {
+                    const tagsList = Object.entries(response.tags).map(([key, value]) => {
+                        if (key === '링크') {
+                            return `<li>${key}: <a href="${value}" target="_blank">${value}</a></li>`;
+                        }
+                        return `<li>${key}: ${value}</li>`;
+                    }).join('');
+
+                    const resultMessage = `
+                        <h3>${response.touristspot_name}</h3>
+                        <p>주 카테고리: ${response.main_category}</p>
+                        <p>세부 카테고리: ${response.second_category}</p>
+                        <p>설명: ${response.description}</p>
+                        <p>태그:</p>
+                        <ul>${tagsList}</ul>
+                    `;
+                    appendMessage("bot-message", resultMessage);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 404) {
+                        appendMessage("bot-message", '<p class="error">해당 관광지를 찾을 수 없습니다.</p>');
+                    } else {
+                        appendMessage("bot-message", '<p class="error">오류가 발생했습니다. 다시 시도해 주세요.</p>');
+                    }
+                }
+            });
+        });
+    });
+
+    // 메시지를 화면에 추가하는 함수, bot-message에만 딜레이 추가
+    function appendMessage(messageType, messageContent) {
+        const chatBox = document.getElementById("chat-box");
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("message", messageType);
+        messageElement.innerHTML = "...";  // 초기 설정
+
+        // 메시지를 즉시 chatBox에 추가
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        if (messageType === "bot-message") {
+            setTimeout(() => {
+                messageElement.innerHTML = messageContent;  // 0.5초 후에 메시지 내용 표시
+            }, 1000);  // 1초 딜레이
+        } else {
+            messageElement.innerHTML = messageContent;  // 봇 메시지가 아닐 때는 바로 내용 표시
+        }
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/css/profile.css' %}">
+    <script src="{% static 'accounts/js/profile.js' %}"></script>
+</head>
+<body>
+   <!-- Include the Navbar -->
+  {% include 'navbar.html' %}
+
+  <div class="container">
+        <h1>내 프로필</h1>
+        <div class="profile-info">
+            <div class="div-profile-image">
+                {% if user.profile_image %}
+                    <img src="{{ user.profile_image.url }}" alt="프로필 이미지" class="profile-image">
+                {% else %}
+                    <img src="{% static 'accounts/images/default_profile.png' %}" alt="기본 프로필 이미지" class="profile-image">
+                {% endif %}
+            </div>
+            <div class="profile-details">
+                <p><strong>사용자 이름:</strong> {{ user.username }}</p>
+                <p><strong>가입 날짜:</strong> {{ user.date_joined }}</p>
+                <p><strong>이메일:</strong> {{ user.email }}</p>
+                <p><strong>소개글:</strong> {{ user.short_description }} </p>
+                <p><strong>거주 지역:</strong> {{ user.residence_area }} </p>
+                <p><strong>성별:</strong> {{ user.gender }} </p>
+                <p><strong>나이:</strong> {{ user.age }} </p>
+                <a href="{% url 'accounts:edit_profile' %}" class="btn">프로필 수정</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

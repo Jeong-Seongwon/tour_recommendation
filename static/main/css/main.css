@@ -1,0 +1,260 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #fafafa;
+    color: #2c2c2c;
+    padding-top: 80px;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+
+/* chat-div 스타일 */
+.chat-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 수직 중앙 */
+    align-items: center;     /* 수평 중앙 */
+    padding: 15px;
+    background-color: #ffffff;
+    border-top: 1px solid #e0e0e0;
+    position: relative; /* 화면 중앙에 배치 */
+    max-width: 600px;  /* 최대 너비 설정 (원하는 경우) */
+    margin: 0 auto; /* 수평 중앙 배치 */
+    z-index: 10; /* 다른 콘텐츠 위에 오도록 설정 */
+}
+
+/* 제목 스타일 */
+.chat-div h1 {
+    margin-bottom: 20px;  /* 제목과 입력 필드 간의 공간 */
+    font-size: 24px;
+    color: #333;
+}
+
+/* 입력 필드 스타일 */
+#user-input {
+    flex-grow: 1;
+    padding: 12px 18px;
+    border: 1px solid #d1d1d1;
+    border-radius: 20px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s;
+    margin-bottom: 15px;  /* 인풋과 버튼 간의 간격 */
+}
+
+#user-input:focus {
+    border-color: #3c8dbc;
+}
+
+/* 버튼 스타일 */
+button {
+    padding: 10px 15px;
+    background-color: #3c8dbc;
+    color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #337ab7;
+    transform: scale(1.05);
+}
+
+button:active {
+    background-color: #2c6ba1;
+    transform: scale(0.95);
+}
+
+
+/* 컨텐츠 스타일 */
+.content {
+    position: relative;
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 60px auto; /* 중앙 정렬 */
+}
+
+.content h1 {
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: #333; /* 어두운 색상 */
+    display: block; /* h1과 a를 한 줄에 배치 */
+    margin-right: 10px; /* 간격을 좀 더 주기 */
+}
+
+.more-link {
+    font-size: 12px; /* 더보기 링크를 작게 설정 */
+    color: black; /* 링크 색상 */
+    text-decoration: none; /* 밑줄 제거 */
+    margin-left: 30px; /* 'Top Rated Tours'와의 간격을 설정 */
+}
+
+.more-link:hover {
+    text-decoration: underline; /* 마우스를 올리면 밑줄이 생기도록 */
+    cursor: pointer; /* 마우스를 올렸을 때 손가락 모양 커서 */
+}
+
+.more-link:active {
+    color: black; /* 클릭해도 색상 변하지 않도록 설정 */
+}
+
+
+/* 추천 컨테이너 스타일 */
+.tour-container, .customer-container {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    gap: 20px;
+    padding: 25px;
+    background-color: #ffffff; /* 흰색 배경 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+}
+
+/* 추천 아이템 스타일 */
+.tour-item, .customer-item {
+    flex: 0 0 auto;
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    z-index: 1;
+}
+
+.tour-item img, .customer-item img {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
+/* Hover 효과 */
+.tour-item:hover, .customer-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+}
+
+/* 텍스트 스타일 */
+.customer-item h2 {
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #444;
+    font-weight: 600;
+}
+
+.customer-item p {
+    margin-top: 10px;
+    font-size: 15px;
+    color: #666;
+}
+
+/* 스크롤 버튼 스타일 */
+.scroll-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.4);
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    z-index: 20;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+}
+
+.scroll-button.left {
+    left: 10px;
+}
+
+.scroll-button.right {
+    right: 10px;
+}
+
+.scroll-button:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.section {
+    position: relative;
+    margin-bottom: 60px;
+}
+
+
+
+
+
+
+
+
+.tour-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    flex-shrink: 0; /* Prevent card from shrinking */
+}
+
+.tour-card:hover {
+    transform: translateY(-5px);
+}
+
+.tour-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+}
+
+.tour-info {
+    padding: 15px;
+}
+
+.tour-title {
+    font-size: 1.1em;
+    margin: 0 0 10px 0;
+    font-weight: bold;
+    text-align: center; /* Center the title */
+}
+
+.tour-stats {
+    display: flex;
+    justify-content: flex-end; /* Align items to the right */
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* Link styles for tour-card */
+.tour-card-link {
+    text-decoration: none; /* Remove underline from links */
+    color: #000; /* Set text color to black */
+    display: block; /* Ensure the link takes the whole card */
+    border-radius: 8px; /* Maintain the rounded corners */
+}
+
+.tour-card-link:hover .tour-card {
+    transform: translateY(-5px); /* Hover effect on the card when linked */
+}
+
+.tour-card-link:hover {
+    color: #000; /* Ensure the text color remains black on hover */
+}

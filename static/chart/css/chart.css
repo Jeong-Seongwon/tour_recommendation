@@ -1,0 +1,103 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #fafafa;
+    color: #2c2c2c;
+    padding-top: 80px;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+
+/* 차트 버튼 스타일 */
+.chart-buttons {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.chart-toggle-btn {
+    padding: 12px 24px;
+    margin: 0 8px;
+    border: 1px solid #ccc;
+    background-color: #e6f2ff;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 500;
+    border-radius: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.chart-toggle-btn.active {
+    background-color: #cce0ff;
+    color: #007bff;
+    border-color: #007bff;
+    box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);
+}
+
+.chart-toggle-btn:hover {
+    background-color: #d9e9ff;
+    border-color: #b3caff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chart-toggle-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.4);
+}
+
+/* 차트 섹션 스타일 */
+.chart-sections {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden; /* 내용이 넘치지 않도록 설정 */
+    max-width: 100%; /* 최대 너비 설정 */
+}
+
+/* 차트 세부 섹션 */
+.chart-section {
+    display: none;
+    width: 90%;
+    max-width: 1000px; /* 차트의 최대 너비 설정 */
+    text-align: center;
+    padding: 10px;
+    margin: 10px;
+    overflow: hidden; /* 차트 영역을 벗어나는 내용은 숨김 */
+    position: relative;
+}
+
+.chart-section.active {
+    display: block;
+}
+
+/* 차트 캔버스 */
+canvas {
+    width: 80%;
+    height: 80%; /* 부모 요소의 높이에 맞춰 100%로 설정 */
+    max-height: 500px; /* 최대 높이를 500px로 설정, 차트 길이가 무제한으로 길어지지 않도록 제한 */
+    object-fit: contain; /* 차트가 캔버스를 넘지 않도록 설정 */
+}
+
+/* 미디어 쿼리: 작은 화면에서 버튼 레이아웃 조정 */
+@media (max-width: 768px) {
+    .chart-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .chart-toggle-btn {
+        margin-bottom: 10px;
+    }
+
+    canvas {
+        height: 40vh; /* 작은 화면에서는 canvas의 높이를 비례하여 줄여줍니다 */
+    }
+}

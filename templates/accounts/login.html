@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+   <meta charset="UTF-8">
+   <title>Login</title>
+   {% load static %}
+   <link rel="stylesheet" href="{% static 'main/css/navbar.css' %}">
+   <link rel="stylesheet" href="{% static 'accounts/css/login.css' %}">
+</head>
+<body>
+   <!-- Include the Navbar -->
+   {% include 'navbar.html' %}
+   <div class="container">
+
+       <h1>Login</h1>
+       <form method="POST">
+           {% csrf_token %}
+           {{ form.as_p }}
+           <button type="submit">로그인</button>
+       </form>
+       <p class="switch-auth">계정이 없으신가요? <a href="{% url 'accounts:signup' %}">회원가입</a></p>
+   </div>
+</body>
+</html>
