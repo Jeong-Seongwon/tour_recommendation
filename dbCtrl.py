@@ -702,12 +702,12 @@ if __name__ == "__main__":
     # insert_touristspot_from_json()
     #
     #
-    # # 인기 여행지 정보
-    # create_popular_tours()
+    # 인기 여행지 정보
+    create_popular_tours()
 
 
-    # # 추천 점수
-    # recommendation_objects = calculate_recommendation_scores()
+    # 추천 점수
+    recommendation_objects = calculate_recommendation_scores()
 
 
 
