@@ -46,7 +46,7 @@ class Visit(models.Model):
 class Travel(models.Model):
     travel_id = models.CharField(max_length=50, primary_key=True)  # 여행 ID
     traveler = models.ForeignKey(User, on_delete=models.CASCADE)  # 여행객과 연결
-    travel_name = models.TextField()  # 여행 이름 (예: '쇼핑', '테마파크 / 놀이시설 / 동.식물원 방문')
+    travel_name = models.TextField(blank=True, null=True)
     start_date = models.DateField()  # 여행 시작일
     end_date = models.DateField()  # 여행 종료일
     movement_name = models.CharField(max_length=100, blank=True)  # 이동 수단 이름

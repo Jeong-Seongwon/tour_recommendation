@@ -5,7 +5,7 @@ from recommend.models import Travel, TRAVEL_PURPOSE_CHOICES
 class TravelForm(forms.ModelForm):
     class Meta:
         model = Travel
-        fields = ['traveler', 'travel_name', 'start_date', 'end_date', 'movement_name', 'companion_num', 'relationship', 'visits']
+        fields = ['traveler', 'travel_name', 'start_date', 'end_date', 'movement_name', 'companion_num', 'relationship']
 
     # 선택할 수 있는 여행 목적 필드 추가
     travel_name = forms.MultipleChoiceField(

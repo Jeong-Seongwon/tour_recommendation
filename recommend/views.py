@@ -1,10 +1,14 @@
-from django.shortcuts import render, get_object_or_404
+from lib2to3.fixes.fix_input import context
+
+from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-from recommend.models import PopularTour, Recommendation, Visit
+from recommend.models import PopularTour, Recommendation, Visit, Travel, Consume, TRAVEL_PURPOSE_CHOICES
 from recommend.utils import calculate_related_spots
-from accounts.models import User
+from django.contrib.auth.decorators import login_required
+from django.utils.timezone import now
+from recommend.forms import TravelForm
 
 
 
@@ -133,24 +137,76 @@ def tour_info_view(request, id):
     })
 
 
+# 방문 예정지 목록 페이지
+@login_required
+def planned_visits(request):
+    planned_visit_ids = request.session.get('planned_visits', [])
+    planned_visits = Visit.objects.filter(id__in=planned_visit_ids)
+
+    form = TravelForm()  # 날짜 입력 폼 포함
+
+    context = {
+        'form': form,
+        'planned_visits': planned_visits,
+        'TRAVEL_PURPOSE_CHOICES': TRAVEL_PURPOSE_CHOICES
+    }
+    return render(request, 'recommend/travel_plan.html', context)
 
 
+# 방문 예정지 추가
+@login_required
+def add_to_planned_visits(request, visit_id):
+    planned_visits = request.session.get('planned_visits', [])
+
+    if visit_id not in planned_visits:  # 중복 추가 방지
+        planned_visits.append(visit_id)
+        request.session['planned_visits'] = planned_visits
+
+    return JsonResponse({'status': 'success', 'planned_visits': planned_visits})
 
 
+# 방문 예정지 삭제
+@login_required
+def remove_from_planned_visits(request, visit_id):
+    planned_visits = request.session.get('planned_visits', [])
+
+    if visit_id in planned_visits:
+        planned_visits.remove(visit_id)
+        request.session['planned_visits'] = planned_visits
+    return redirect('recommend:planned_visits')
 
 
+# 방문 예정지를 기반으로 여행 생성
+@login_required
+def create_travel_from_planned_visits(request):
+    if request.method == 'POST':
+        planned_visits_ids = request.session.get('planned_visits', [])
+        visits = Visit.objects.filter(id__in=planned_visits_ids)
+
+        form = TravelForm(request.POST)
+        if form.is_valid():
+            travel = form.save(commit=False)
+            travel.traveler = request.user  # 로그인된 사용자 설정
+            travel.save()
+            travel.visits.set(visits)  # 방문지 설정
+
+            request.session['planned_visits'] = []  # 세션 초기화
+            return redirect('recommend:travel_detail', travel_id=travel.travel_id)
+        else:
+            # 폼 유효성 검증 실패 시
+            return render(request, 'recommend/travel_plan.html', {'form': form})
+
+    return redirect('recommend:planned_visits')
 
 
+# 여행 상세 페이지
+@login_required
+def travel_detail(request, travel_id):
+    travel = get_object_or_404(Travel, id=travel_id)  # id 키워드로 수정
+    consumes = Consume.objects.filter(travel=travel)
 
-
-
-# def create_travel(request):
-#     if request.method == 'POST':
-#         form = TravelForm(request.POST)
-#         if form.is_valid():
-#             form.save()  # 저장
-#             return redirect('success_url')  # 성공적으로 저장 후 리디렉션
-#     else:
-#         form = TravelForm()
-#
-#     return render(request, 'your_template.html', {'form': form})
+    context = {
+        'travel': travel,
+        'consumes': consumes
+    }
+    return render(request, 'recommend/travel_detail.html', context)

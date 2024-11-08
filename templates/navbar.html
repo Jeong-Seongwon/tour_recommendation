@@ -5,7 +5,7 @@
        <a href="{% url 'recommend:customer' %}" class="navbar-menu">Recommend Tour</a>
        <a href="{% url 'chatbot:chatbot' %}" class="navbar-menu">ChatBot</a>
        <a href="{% url 'chart:chart' %}" class="navbar-menu">Chart</a>
-       <a href="" class="navbar-menu">Another</a>
+       <a href="{% url 'recommend:planned_visits' %}" class="navbar-menu">Plan</a>
        <div class="navbar-links">
            {% if user.is_authenticated %}
                <a href="{% url 'accounts:profile' %}" class="navbar-link">

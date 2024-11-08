@@ -28,6 +28,12 @@
 
         <p>주소 : {{ visit.address }}</p>
         <p>추가 정보가 없어요....</p>
+
+        <form method="post" action="{% url 'recommend:add_to_planned_visits' visit.id %}">
+            {% csrf_token %}
+            <button class="add-plan-btn" type="submit">방문예정지에 추가</button>
+        </form>
+
     </div>
 
     <div class="related-spots-section">
@@ -64,6 +70,28 @@
 
 
     <script src="{% static 'recommend/js/tour_info.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        function addToPlannedVisits(visitId) {
+            $.ajax({
+                url: '/recommend/add_to_planned_visits/' + visitId + '/',  // URL 수정 필요 시 반영
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF 토큰 포함
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert('방문지가 추가되었습니다!');
+                        // 필요 시 UI 업데이트
+                    }
+                },
+                error: function() {
+                    alert('방문지 추가에 실패했습니다.');
+                }
+            });
+        }
+    </script>
 
 
 </body>
