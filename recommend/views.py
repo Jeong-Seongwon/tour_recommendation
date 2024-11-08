@@ -58,8 +58,8 @@ def recommend_tours_view(request):
     items_per_page = 20
 
     # 로그인된 사용자
-    # user = request.user
-    user = User.objects.all()[0]  # 임의로 user 지정
+    user = request.user
+    # user = User.objects.first()  # 임의로 user 지정
     username = user.username
 
     # 특정 사용자의 AI 추천 여행지를 score 순으로 정렬
