@@ -1,0 +1,267 @@
+/* 리셋 스타일 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 전체 페이지 스타일 */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    padding-top: 80px;
+}
+
+/* 메인 컨테이너 스타일 */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 페이지 제목 스타일 */
+h2 {
+    font-size: 2rem;
+    color: #1a1a1a;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+/* 카드 스타일 */
+.card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.card-header h3 {
+    font-size: 1.4rem;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* 방문 예정지 목록 스타일 */
+.planned-visit {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s ease;
+}
+
+.planned-visit:last-child {
+    border-bottom: none;
+}
+
+.planned-visit:hover {
+    background-color: #f8f9fa;
+}
+
+.planned-visit a {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    flex-grow: 1;
+}
+
+.planned-visit a:hover {
+    color: #28a745;
+}
+
+/* 버튼 스타일 */
+.btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-remove {
+    background-color: transparent;
+    color: #dc3545;
+    padding: 5px 10px;
+}
+
+.btn-remove:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-submit {
+    background-color: #28a745;
+    color: white;
+    padding: 12px 24px;
+    font-size: 1rem;
+}
+
+.btn-submit:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+}
+
+.btn-submit:active {
+    transform: translateY(0);
+}
+
+/* 빈 상태 메시지 스타일 */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+/* 텍스트 정렬 유틸리티 */
+.text-center {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* 폼 테이블 스타일 */
+table {
+    width: 100%;
+    border-spacing: 0 15px;
+    margin-bottom: 20px;
+}
+
+tr {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+th, td {
+    width: 100%;
+    text-align: left;
+    padding-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #4a4a4a;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: white;
+}
+
+select {
+    width: auto; /* 내용에 맞게 가로 크기 자동 조정 */
+    max-width: 100%; /* 최대 너비를 100%로 설정하여 화면 크기에 맞게 확장 */
+    padding: 12px 16px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: white;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* 에러 메시지 스타일 */
+.errorlist {
+    list-style: none;
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    padding: 0;
+}
+
+/* 도움말 텍스트 스타일 */
+.helptext {
+    display: block;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+/* 반응형 스타일 */
+@media (min-width: 768px) {
+    tr {
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+    }
+
+    th, td {
+        width: 70%;
+    }
+
+    select {
+        width: auto; /* 내용에 맞게 너비 자동 조정 */
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    h2 {
+        font-size: 1.6rem;
+        margin-bottom: 20px;
+    }
+
+    .card-header {
+        padding: 15px;
+    }
+
+    .card-header h3 {
+        font-size: 1.2rem;
+    }
+
+    .card-body {
+        padding: 15px;
+    }
+
+    .planned-visit {
+        padding: 12px;
+    }
+
+    .btn-submit {
+        width: 100%;
+    }
+
+    select {
+        width: 100%; /* 화면이 작아지면 100% 너비로 확장 */
+    }
+}

@@ -1,0 +1,181 @@
+/* 기본 스타일 초기화 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #fafafa;
+    color: #2c2c2c;
+    padding-top: 80px;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+
+/* 좌측 고정된 여행 목록 */
+.user-travels {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-right: 2px solid #ddd;
+}
+
+.user-travels ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.user-travels ul li {
+    margin-bottom: 10px;
+}
+
+.user-travels ul li a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+.user-travels ul li a:hover {
+    text-decoration: underline;
+}
+
+
+
+/* 오른쪽 컨텐츠 영역 */
+.container {
+    max-width: 800px;
+    margin: 2rem auto;
+    margin-left: 270px; /* 여행 목록이 고정된 너비만큼 마진을 줌 */
+    padding: 0 1rem;
+}
+
+h2, h3, h4, h5 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+/* 카드 스타일 */
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.card-header {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.card-header h2, .card-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.card-details {
+    flex: 1;
+    min-width: 300px;
+}
+
+ul {
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+    list-style-type: disc; /* 기본 스타일 변경 */
+}
+
+.list-group {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.list-group-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.list-group-item span {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.text-primary {
+    color: #3498db;
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+    height: 1rem;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background-color: #e74c3c; /* 낮은 신뢰도 기본값 */
+    height: 100%;
+    text-align: center;
+    color: white;
+    font-size: 0.85rem;
+    line-height: 1rem;
+}
+
+.progress-bar[aria-valuenow="75"] {
+    background-color: #f1c40f; /* 중간 신뢰도 */
+}
+
+.progress-bar[aria-valuenow="90"] {
+    background-color: #2ecc71; /* 높은 신뢰도 */
+}
+
+
+.alert-info {
+    background-color: #d9edf7;
+    border: 1px solid #bce8f1;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+
+.alert-info-list {
+    margin-top: 0.5rem;
+    padding-left: 1rem;
+}
+
+.alert-info-list li {
+    margin-bottom: 0.5rem;
+}
+
+.small {
+    font-size: 0.875rem;
+    color: #7f8c8d;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .row {
+        flex-direction: column;
+    }
+}
