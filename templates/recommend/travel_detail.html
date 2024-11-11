@@ -2,9 +2,148 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>여행 상세</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'recommend/css/travel_detail.css' %}">
+
+    {% load humanize %}
+
 </head>
 <body>
+    {% include 'navbar.html' %}
+    <div class="user-travels">
+        <h4>내 여행 목록</h4>
+        <ul>
+            {% for travel in user_travels %}
+                <li><a href="{% url 'recommend:travel_detail' travel.travel_id %}">{{ travel.travel_id }} - {{ travel.start_date|date:"Y.m.d" }}~{{ travel.end_date|date:"Y.m.d" }}</a></li>
+            {% empty %}
+                <li>여행 정보가 없습니다.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2>여행 기본 정보</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="card-details">
+                        <p><strong>여행 목적:</strong></p>
+                        <ul>
+                            {% for name in travel_names %}
+                                <li>{{ name }}</li>
+                            {% empty %}
+                                <li>여행 목적이 설정되지 않았습니다.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="card-details">
+                        <p><strong>여행 기간:</strong> {{ travel.start_date|date:"Y.m.d" }} - {{ travel.end_date|date:"Y.m.d" }}</p>
+                        <p><strong>이동 수단:</strong> {{ travel.movement_name }}</p>
+                    </div>
+                    <div class="card-details">
+                        <p><strong>동행인원:</strong> {{ travel.companion_num }}명</p>
+                        <p><strong>관계:</strong> {{ travel.relationship }}</p>
+                    </div>
+                </div>
+
+                <!-- 방문 장소 목록 -->
+                <div class="visit-list">
+                    <h5>방문 예정지</h5>
+                    <ul class="list-group">
+                        {% for visit in travel.visits.all %}
+                            <li class="list-group-item">
+                                <a href="{% url 'recommend:tour_info' visit.id %}">
+                                    {{ visit.visit_name }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 소비 정보 카드 -->
+        <div class="card">
+            {% if consumes %}
+                <div class="card-header">
+                    <h3>실제 소비 금액</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-primary">총 금액: {{ total_amount|intcomma }}원</h4>
+
+                    <!-- 카테고리별 비용 -->
+                    <div class="row">
+                        <div class="card-details">
+                            <h5>카테고리별 비용</h5>
+                            <ul class="list-group">
+                                {% for category, amount in category_expenses.items %}
+                                <li class="list-group-item">
+                                    {{ category|title }}
+                                    <span>{{ amount|intcomma }}원</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+            {% else %}
+                <div class="card-header">
+                    <h3>예상 소비 금액 분석</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-primary">총 예상 금액: {{ predicted_amount|intcomma }}원</h4>
+
+                    <div class="row">
+                        <div class="card-details">
+                            <h5>카테고리별 예상 비용</h5>
+                            <ul class="list-group">
+                                {% for category, amount in prediction_details.expense_details.items %}
+                                <li class="list-group-item">
+                                    {{ category|title }}
+                                    <span>{{ amount|intcomma }}원</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div class="card-details">
+                            <h5>예측 신뢰도</h5>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar"
+                                     style="width: {{ prediction_details.confidence_score }}%"
+                                     aria-valuenow="{{ prediction_details.confidence_score }}"
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {{ prediction_details.confidence_score }}%
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                * 신뢰도는 유사한 여행 데이터 {{ prediction_details.similar_travels_count }}건을 기반으로 계산되었습니다.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="alert-info">
+                        <h5>예측 기준</h5>
+                        <ul class="alert-info-list">
+                            <li>여행 기간: {{ prediction_details.travel_days }}일</li>
+                            <li>방문 예정지: {{ prediction_details.visit_count }}곳</li>
+                            <li>유사 여행 데이터: {{ prediction_details.similar_travels_count }}건</li>
+                        </ul>
+                    </div>
+
+                    <small class="text-muted">
+                        * 이 금액은 유사한 여행 데이터를 기반으로 한 예상치이며, 실제 소비 금액은 다를 수 있습니다.
+                    </small>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 
 </body>
 </html>

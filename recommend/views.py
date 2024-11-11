@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from recommend.models import PopularTour, Recommendation, Visit, Travel, Consume, TRAVEL_PURPOSE_CHOICES
-from recommend.utils import calculate_related_spots
+from recommend.utils import calculate_related_spots, predict_travel_expenses
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from recommend.forms import TravelForm
@@ -129,11 +129,15 @@ def tour_info_view(request, id):
     # 연관된 방문지 가져오기
     related_spots = calculate_related_spots(id, limit=10)
 
+    # 여행 방문 예정지 목록
+    planned_visits = request.session.get('planned_visits', [])
+
     # 방문지 정보와 관련된 다른 데이터를 context에 담아서 템플릿에 전달
     return render(request, 'recommend/tour_info.html', {
         'visit': visit,
         'visit_count':visit_count,
         'related_spots': related_spots,
+        'planned_visits': planned_visits,
     })
 
 
@@ -148,7 +152,7 @@ def planned_visits(request):
     context = {
         'form': form,
         'planned_visits': planned_visits,
-        'TRAVEL_PURPOSE_CHOICES': TRAVEL_PURPOSE_CHOICES
+        'TRAVEL_PURPOSE_CHOICES': TRAVEL_PURPOSE_CHOICES,
     }
     return render(request, 'recommend/travel_plan.html', context)
 
@@ -162,7 +166,8 @@ def add_to_planned_visits(request, visit_id):
         planned_visits.append(visit_id)
         request.session['planned_visits'] = planned_visits
 
-    return JsonResponse({'status': 'success', 'planned_visits': planned_visits})
+    # 이전 페이지로 리다이렉트
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 # 방문 예정지 삭제
@@ -173,7 +178,9 @@ def remove_from_planned_visits(request, visit_id):
     if visit_id in planned_visits:
         planned_visits.remove(visit_id)
         request.session['planned_visits'] = planned_visits
-    return redirect('recommend:planned_visits')
+
+    # 이전 페이지로 리다이렉트
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 # 방문 예정지를 기반으로 여행 생성
@@ -193,20 +200,61 @@ def create_travel_from_planned_visits(request):
             request.session['planned_visits'] = []  # 세션 초기화
             return redirect('recommend:travel_detail', travel_id=travel.travel_id)
         else:
-            # 폼 유효성 검증 실패 시
-            return render(request, 'recommend/travel_plan.html', {'form': form})
+            # 폼 유효성 검증 실패 시 원래 페이지로 돌아가고 입력값을 그대로 두기
+            planned_visits = Visit.objects.filter(id__in=planned_visits_ids)  # 계획된 방문지 재조회
+            context = {
+                'form': form,
+                'planned_visits': planned_visits,
+                'TRAVEL_PURPOSE_CHOICES': TRAVEL_PURPOSE_CHOICES,
+            }
+            return render(request, 'recommend/travel_plan.html', context)
 
     return redirect('recommend:planned_visits')
 
 
 # 여행 상세 페이지
 @login_required
-def travel_detail(request, travel_id):
-    travel = get_object_or_404(Travel, id=travel_id)  # id 키워드로 수정
+def travel_detail(request, travel_id=None):
+    user = request.user
+    user_travels = Travel.objects.filter(traveler=user)
+
+    # travel_id가 None이면 사용자의 마지막 여행을 가져옴
+    if travel_id is None:
+        travel = user_travels.order_by('-travel_id').first()  # 마지막 여행
+    else:
+        travel = get_object_or_404(Travel, travel_id=travel_id)
+
+    # 여행 이름을 쉼표로 분리하여 리스트로 만듬
+    travel_names = [name.strip() for name in travel.travel_name.split(',')]
+
+    # 소비 정보 가져오기
     consumes = Consume.objects.filter(travel=travel)
 
+    # 예산 예측 관련 변수 초기화
+    predicted_amount = 0
+    prediction_details = None
+
+    # 소비가 있을 경우 총 금액 계산
+    total_amount = sum(consume.payment_amount for consume in consumes)
+
+    # 카테고리별 소비 금액 계산
+    category_expenses = {}
+    if consumes:
+        for consume in consumes:
+            category = consume.category
+            category_expenses[category] = category_expenses.get(category, 0) + consume.payment_amount
+    else:
+        # 소비 정보가 없으면 예산 예측
+        predicted_amount, prediction_details = predict_travel_expenses(travel)
+
     context = {
+        'user_travels': user_travels,
         'travel': travel,
-        'consumes': consumes
+        'travel_names': travel_names,
+        'consumes': consumes,
+        'total_amount': total_amount,
+        'category_expenses': category_expenses,
+        'predicted_amount': predicted_amount,
+        'prediction_details': prediction_details,
     }
     return render(request, 'recommend/travel_detail.html', context)

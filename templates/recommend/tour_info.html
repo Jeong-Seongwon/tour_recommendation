@@ -1,98 +1,200 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tour Info</title>
+    <title>{{ visit.visit_name }} - 관광지 정보</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'main/css/navbar.css' %}">
     <link rel="stylesheet" href="{% static 'recommend/css/tour_info.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-
-    <!-- Include the Navbar -->
     {% include 'navbar.html' %}
 
-    <div class="tour-info">
-        <h1>{{ visit.visit_name }}</h1>
-        <div class="tour-stats">
-            <span>👁️ {{ visit_count|default:0 }}</span>
-            <span>⭐ {{ rating|default:0 }}</span>
-        </div>
-
-        {% if visit.photos %}
-            <img src="{{ visit.photos }}" alt="{{ visit.visit_name }}" class="tour-image">
-        {% else %}
-            <img src="{% static 'recommend/images/no_image.png' %}" alt="{{ visit.visit_name }}" class="tour-image">
-        {% endif %}
-
-        <p>주소 : {{ visit.address }}</p>
-        <p>추가 정보가 없어요....</p>
-
-        <form method="post" action="{% url 'recommend:add_to_planned_visits' visit.id %}">
-            {% csrf_token %}
-            <button class="add-plan-btn" type="submit">방문예정지에 추가</button>
-        </form>
-
-    </div>
-
-    <div class="related-spots-section">
-        <h3>연관 방문지 추천</h3>
-        <div class="related-spots-container">
-            <button class="scroll-button left" id="scrollLeft">
-                <span class="arrow">&#10094;</span>
-            </button>
-
-            <div class="related-spots-wrapper">
-                <div class="related-spot-list">
-                    {% for spot in related_spots %}
-                    <div class="related-spot-item">
-                        <a href="{% url 'recommend:tour_info' spot.visit.id %}" class="related-spot-link">
-                            <div class="related-spot">
-                                {% if spot.visit.photos %}
-                                    <img src="{{ spot.visit.photos.url }}" alt="{{ spot.visit.visit_name }}" class="card-image">
-                                {% else %}
-                                    <img src="{% static 'recommend/images/no_image.png' %}" alt="No image" class="card-image">
-                                {% endif %}
-                                <h3>{{ spot.visit.visit_name }}</h3>
-                            </div>
-                        </a>
+    <main class="container">
+        <!-- 헤더 섹션 -->
+        <section class="tour-header">
+            <div class="tour-header-content">
+                <h1 class="tour-title">{{ visit.visit_name }}</h1>
+                <div class="tour-meta">
+                    <div class="tour-stats">
+                        <span class="stat-item">
+                            <i class="fas fa-eye"></i>
+                            <span>{{ visit_count|default:0 }}</span>
+                        </span>
+                        <span class="stat-item">
+                            <i class="fas fa-star"></i>
+                            <span>{{ rating|default:0 }}</span>
+                        </span>
                     </div>
-                    {% endfor %}
+                    <div class="action-buttons">
+                        <div class="share-button">
+                            <button onclick="shareLocation()" class="btn btn-secondary">
+                                <i class="fas fa-share-alt"></i> 공유하기
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <button class="scroll-button right" id="scrollRight">
-                <span class="arrow">&#10095;</span>
-            </button>
-        </div>
-    </div>
+        <!-- 메인 콘텐츠 섹션 -->
+        <section class="tour-content">
+            <div class="tour-gallery">
+                {% if visit.photos %}
+                    <img src="{{ visit.photos }}" alt="{{ visit.visit_name }}" class="main-image">
+                {% else %}
+                    <img src="{% static 'recommend/images/no_image.png' %}" alt="{{ visit.visit_name }}" class="main-image">
+                {% endif %}
+            </div>
 
+            <div class="tour-info-grid">
+                <div class="tour-details">
+                    <div class="info-card">
+                        <h2 class="card-title"><i class="fas fa-map-marker-alt"></i> 위치 정보</h2>
+                        <p class="address">{{ visit.address }}</p>
+                        <button onclick="copyAddress()" class="btn btn-text">
+                            <i class="fas fa-copy"></i> 주소 복사
+                        </button>
+                    </div>
 
-    <script src="{% static 'recommend/js/tour_info.js' %}"></script>
+                    <div class="info-card">
+                        <h2 class="card-title"><i class="fas fa-info-circle"></i> 상세 정보</h2>
+                        {% if visit.description %}
+                            <p>{{ visit.description }}</p>
+                        {% else %}
+                            <p class="no-info">추가 정보가 없습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="tour-actions">
+                    {% if visit.id in planned_visits %}
+                        <form method="post" action="{% url 'recommend:remove_from_planned_visits' visit.id %}" class="action-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-calendar-minus"></i> 방문 예정지에서 삭제
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{% url 'recommend:add_to_planned_visits' visit.id %}" class="action-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-calendar-plus"></i> 방문 예정지에 추가
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- 연관 관광지 섹션 -->
+        <section class="related-spots-section">
+            <h2 class="section-title">
+                <i class="fas fa-map-signs"></i> 연관 방문지 추천
+            </h2>
+            <div class="related-spots-container">
+                <button class="scroll-button left" id="scrollLeft" aria-label="이전">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+
+                <div class="related-spots-wrapper">
+                    <div class="related-spot-list">
+                        {% for spot in related_spots %}
+                        <div class="related-spot-item">
+                            <a href="{% url 'recommend:tour_info' spot.visit.id %}" class="spot-card">
+                                <div class="spot-image">
+                                    {% if spot.visit.photos %}
+                                        <img src="{{ spot.visit.photos.url }}" alt="{{ spot.visit.visit_name }}">
+                                    {% else %}
+                                        <img src="{% static 'recommend/images/no_image.png' %}" alt="No image">
+                                    {% endif %}
+                                </div>
+                                <div class="spot-info">
+                                    <h3>{{ spot.visit.visit_name }}</h3>
+                                    <span class="distance">
+                                        <i class="fas fa-map-marker-alt"></i> {{ spot.distance|floatformat:1 }}km
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button class="scroll-button right" id="scrollRight" aria-label="다음">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </section>
+    </main>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+    <script src="{% static 'recommend/js/tour_info.js' %}"></script>
     <script>
-        function addToPlannedVisits(visitId) {
+        // 주소 복사 기능
+        function copyAddress() {
+            const address = document.querySelector('.address').textContent;
+            navigator.clipboard.writeText(address).then(() => {
+                alert('주소가 복사되었습니다.');
+            });
+        }
+
+        // 공유하기 기능
+        function shareLocation() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '{{ visit.visit_name }}',
+                    text: '{{ visit.visit_name }} - {{ visit.address }}',
+                    url: window.location.href
+                })
+                .catch(error => console.log('공유 실패:', error));
+            } else {
+                alert('공유하기 기능을 지원하지 않는 브라우저입니다.');
+            }
+        }
+
+        // 방문 예정지 추가/제거 기능
+        function handlePlannedVisit(visitId, action) {
+            const url = `/recommend/${action}_planned_visits/${visitId}/`;
             $.ajax({
-                url: '/recommend/add_to_planned_visits/' + visitId + '/',  // URL 수정 필요 시 반영
+                url: url,
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF 토큰 포함
+                    'X-CSRFToken': '{{ csrf_token }}'
                 },
                 success: function(response) {
                     if (response.status === 'success') {
-                        alert('방문지가 추가되었습니다!');
-                        // 필요 시 UI 업데이트
+                        window.location.reload();
                     }
                 },
                 error: function() {
-                    alert('방문지 추가에 실패했습니다.');
+                    alert('요청 처리에 실패했습니다. 다시 시도해주세요.');
                 }
             });
         }
+
+        // 관련 관광지 스크롤 기능
+        document.addEventListener('DOMContentLoaded', function() {
+            const wrapper = document.querySelector('.related-spots-wrapper');
+            const list = document.querySelector('.related-spot-list');
+            const scrollAmount = 300;
+
+            document.getElementById('scrollLeft').addEventListener('click', () => {
+                wrapper.scrollBy({
+                    left: -scrollAmount,
+                    behavior: 'smooth'
+                });
+            });
+
+            document.getElementById('scrollRight').addEventListener('click', () => {
+                wrapper.scrollBy({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
+            });
+        });
     </script>
-
-
 </body>
 </html>

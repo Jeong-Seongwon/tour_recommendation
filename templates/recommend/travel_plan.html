@@ -1,49 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>여행 계획</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'recommend/css/travel_plan.css' %}">
+
 </head>
 <body>
+    {% include 'navbar.html' %}
 
-<div class="planned-visits">
-  {% if planned_visits %}
-    {% for planned_visit in planned_visits %}
-        <div class="planned-visit">
-            {{ planned_visit.visit_name }}
+    <div class="container">
+        <h2>여행 계획</h2>
+
+        <!-- 방문 예정지 목록 -->
+        <div class="card">
+            <div class="card-header">
+                <h3>방문 예정지</h3>
+            </div>
+            <div class="card-body">
+                {% if planned_visits %}
+                    {% for planned_visit in planned_visits %}
+                        <div class="planned-visit">
+                            <a href="{% url 'recommend:tour_info' planned_visit.id %}">
+                                {{ planned_visit.visit_name }}
+                            </a>
+                            <form method="post" action="{% url 'recommend:remove_from_planned_visits' planned_visit.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-remove">✕</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        방문 예정지가 없습니다.
+                    </div>
+                {% endif %}
+            </div>
         </div>
-    {% endfor %}
-  {% endif %}
-</div>
 
+        <!-- 여행 정보 입력 폼 -->
+        <div class="card">
+            <div class="card-header">
+                <h3>여행 정보 입력</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'recommend:create_travel_from_planned_visits' %}">
+                    {% csrf_token %}
+                    {{ form.as_table }}
 
-
-
-
-<form method="post" action="{% url 'recommend:create_travel_from_planned_visits' %}">
-    {% csrf_token %}
-
-    <div>
-        {{ form.travel_name.label }}
-        {{ form.travel_name }}
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-submit">여행 확정</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div>
-        {{ form.start_date.label }}
-        {{ form.start_date }}
-    </div>
-
-    <div>
-        {{ form.end_date.label }}
-        {{ form.end_date }}
-    </div>
-
-    <button type="submit">여행 확정</button>
-</form>
-
-
-
-
-
 </body>
 </html>

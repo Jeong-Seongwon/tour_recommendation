@@ -13,5 +13,7 @@ urlpatterns = [
     path('visit/<int:visit_id>/add/', views.add_to_planned_visits, name='add_to_planned_visits'),
     path('visit/<int:visit_id>/remove/', views.remove_from_planned_visits, name='remove_from_planned_visits'),
     path('create-travel/', views.create_travel_from_planned_visits, name='create_travel_from_planned_visits'),
-    path('travel/<int:travel_id>/', views.travel_detail, name='travel_detail'),
+
+    path('travel/<slug:travel_id>/', views.travel_detail, name='travel_detail'),
+    path('travel/', views.travel_detail, name='travel_detail'),
 ]
