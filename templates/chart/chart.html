@@ -62,13 +62,55 @@
         </div>
     </div>
 
+    {% if user %}
+        <div class="user-chart-sections">
+            <!-- 차트들 -->
+            <div class="chart-section" id="user-travelPurposeChartSection">
+                <h2>여행 목적 별 통계</h2>
+                <canvas id="user-travelPurposeChart"></canvas>
+            </div>
+
+            <div class="chart-section" id="user-travelDurationChartSection">
+                <h2>여행 기간 통계</h2>
+                <canvas id="user-travelDurationChart"></canvas>
+            </div>
+
+            <div class="chart-section" id="user-movementChartSection">
+                <h2>이동 수단 차트</h2>
+                <canvas id="user-movementChart"></canvas>
+            </div>
+
+            <div class="chart-section" id="user-relationshipChartSection">
+                <h2>동반자 수 차트</h2>
+                <canvas id="user-relationshipChart"></canvas>
+            </div>
+
+            <div class="chart-section" id="user-expenseChartSection">
+                <h2>소비 카테고리별 금액 차트</h2>
+                <canvas id="user-expenseChart"></canvas>
+            </div>
+
+            <div class="chart-section" id="user-cityTravelChartSection">
+                <h2>시, 군, 구 별 여행 수 차트</h2>
+                <canvas id="user-cityTravelChart"></canvas>
+            </div>
+
+            <div class="chart-section" id="user-cityExpenseChartSection">
+                <h2>시, 군, 구 별 평균 소비 금액 차트</h2>
+                <canvas id="user-cityExpenseChart"></canvas>
+            </div>
+        </div>
+    {% endif %}
+
+
 
     <script src="{% static 'chart/js/randomColor.js' %}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const chartSections = document.querySelectorAll('.chart-section');
+            const chartSections = document.querySelectorAll('.chart-sections .chart-section');
             const chartButtons = document.querySelectorAll('.chart-toggle-btn');
+            const userChartSections = document.querySelectorAll('.user-chart-sections .chart-section');
 
             // 차트 초기화
             const chartInstances = {};
@@ -80,17 +122,14 @@
                     chartInstances[chartId].destroy();
                 }
 
-                // type에 따라 borderWidth 설정
                 const borderWidth = (type === 'pie' || type === 'doughnut') ? 0 : 1;
 
-                // 차트 옵션
                 const options = {
                     responsive: true,
                     maintainAspectRatio: false,
-                    hoverOffset: 10  // 마우스 올렸을 때 간격 조정
+                    hoverOffset: 10
                 };
 
-                // 파이와 도넛 차트일 때는 scales 옵션을 제외
                 if (type !== 'pie' && type !== 'doughnut') {
                     options.scales = {
                         y: {
@@ -106,12 +145,12 @@
                         datasets: [{
                             label: label,
                             data: data,
-                            backgroundColor: data.map(() => randomColor({ luminosity: 'light' })),  // 임의의 밝은 색상 생성
+                            backgroundColor: data.map(() => randomColor({ luminosity: 'light' })),
                             borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: borderWidth,  // 경계선 너비 설정 (파이와 도넛 차트는 0)
+                            borderWidth: borderWidth,
                         }]
                     },
-                    options: options  // 옵션 적용
+                    options: options
                 });
             }
 
@@ -123,10 +162,14 @@
                     // 모든 버튼, 차트에서 active 클래스 제거
                     chartButtons.forEach(btn => btn.classList.remove('active'));
                     chartSections.forEach(section => section.classList.remove('active'));
+                    userChartSections.forEach(section => section.classList.remove('active'));
 
                     // 현재 클릭된 버튼, 차트에 active 클래스 추가
                     button.classList.add('active');
                     document.getElementById(`${chartType}Section`).classList.add('active');
+                    if (document.getElementById(`user-${chartType}Section`)) {
+                        document.getElementById(`user-${chartType}Section`).classList.add('active');
+                    }
                 });
             });
 
@@ -175,12 +218,61 @@
                         Object.values(data.visit_expense),
                         '시, 군, 구 별 평균 소비 금액'
                     );
-
-                    // 초기 상태로 첫 번째 버튼과 차트 활성화
-                    chartButtons[0].click();
                 })
                 .catch(error => console.error('Error fetching chart data:', error));
+
+            // 사용자 관련 차트 생성
+            fetch("{% url 'chart:user_travel_statistics' %}")
+                .then(response => response.json())
+                .then(data => {
+                    renderChart('user-travelPurposeChart', 'bar',
+                        Object.keys(data.user_travel_purpose_counts),
+                        Object.values(data.user_travel_purpose_counts),
+                        '여행 목적 수 (사용자)'
+                    );
+
+                    renderChart('user-travelDurationChart', 'bar',
+                        Object.keys(data.user_duration_counts),
+                        Object.values(data.user_duration_counts),
+                        '여행 기간 (사용자)'
+                    );
+
+                    renderChart('user-movementChart', 'pie',
+                        data.user_movement_counts.map(item => item.movement_name),
+                        data.user_movement_counts.map(item => item.count),
+                        '이동 수단 (사용자)'
+                    );
+
+                    renderChart('user-relationshipChart', 'line',
+                        data.user_companion_counts.map(item => item.companion_num),
+                        data.user_companion_counts.map(item => item.count),
+                        '동반자 수 (사용자)'
+                    );
+
+                    renderChart('user-expenseChart', 'doughnut',
+                        data.user_expense_counts.map(item => item.category),
+                        data.user_expense_counts.map(item => item.total_amount),
+                        '소비 카테고리별 금액 (사용자)'
+                    );
+
+                    renderChart('user-cityTravelChart', 'bar',
+                        Object.keys(data.user_city_counts),
+                        Object.values(data.user_city_counts),
+                        '시, 군, 구 별 여행 수 (사용자)'
+                    );
+
+                    renderChart('user-cityExpenseChart', 'bar',
+                        Object.keys(data.user_visit_expense),
+                        Object.values(data.user_visit_expense),
+                        '시, 군, 구 별 평균 소비 금액 (사용자)'
+                    );
+                })
+                .catch(error => console.error('Error fetching user chart data:', error));
+
+            // 초기 상태로 첫 번째 버튼과 차트 활성화
+            chartButtons[0].click();
         });
+
 
     </script>
 </body>

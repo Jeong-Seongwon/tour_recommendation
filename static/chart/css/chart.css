@@ -54,7 +54,7 @@ body {
 }
 
 /* 차트 섹션 스타일 */
-.chart-sections {
+.chart-sections, .user-chart-sections {
     display: flex;
     flex-direction: column;
     align-items: center;
