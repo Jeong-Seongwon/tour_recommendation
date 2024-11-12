@@ -47,39 +47,19 @@
         }
         const csrftoken = getCookie('csrftoken');
 
-        // 초기 메시지 표시 (main.html에서 넘어온 경우)
+        // 초기 메시지 표시
         {% if initial_message %}
             appendMessage("user-message", "{{ initial_message }}");
         {% endif %}
 
         {% if initial_response %}
-            const initialTagsList = [];
-            {% for key, value in initial_response.tags.items %}
-                {% if key == '링크' %}
-                    initialTagsList.push(`<li>{{ key }}: <a href="{{ value }}" target="_blank">{{ value }}</a></li>`);
-                {% else %}
-                    initialTagsList.push(`<li>{{ key }}: {{ value }}</li>`);
-                {% endif %}
-            {% endfor %}
-
-            const initialResultMessage = `
-                <h3>{{ initial_response.touristspot_name|safe }}</h3>
-                <p>주 카테고리: {{ initial_response.main_category|safe }}</p>
-                <p>세부 카테고리: {{ initial_response.second_category|safe }}</p>
-                <p>설명: {{ initial_response.description|safe }}</p>
-                <p>태그:</p>
-                <ul>${initialTagsList.join('')}</ul>
-            `;
-            appendMessage("bot-message", initialResultMessage);
-        {% endif %}
-
-        // Enter 키 이벤트
-        $('#user-input').on('keypress', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                $('#send-button').click();
+            try {
+                const initialResponseData = JSON.parse('{{ initial_response|safe }}');
+                handleResponse(initialResponseData);
+            } catch (e) {
+                console.error('Initial response parsing error:', e);
             }
-        });
+        {% endif %}
 
         // 폼 제출 이벤트
         $('#chatbot-form').on('submit', function(event) {
@@ -95,31 +75,17 @@
                 type: "POST",
                 url: "{% url 'chatbot:search_tourist_spot' %}",
                 headers: {
-                    'X-CSRFToken': csrftoken
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
                 },
-                contentType: "application/json",
                 data: JSON.stringify({ query: query }),
                 success: function(response) {
-                    const tagsList = Object.entries(response.tags).map(([key, value]) => {
-                        if (key === '링크') {
-                            return `<li>${key}: <a href="${value}" target="_blank">${value}</a></li>`;
-                        }
-                        return `<li>${key}: ${value}</li>`;
-                    }).join('');
-
-                    const resultMessage = `
-                        <h3>${response.touristspot_name}</h3>
-                        <p>주 카테고리: ${response.main_category}</p>
-                        <p>세부 카테고리: ${response.second_category}</p>
-                        <p>설명: ${response.description}</p>
-                        <p>태그:</p>
-                        <ul>${tagsList}</ul>
-                    `;
-                    appendMessage("bot-message", resultMessage);
+                    handleResponse(response);
                 },
                 error: function(xhr) {
+                    console.error('Error:', xhr);
                     if (xhr.status === 404) {
-                        appendMessage("bot-message", '<p class="error">해당 관광지를 찾을 수 없습니다.</p>');
+                        appendMessage("bot-message", '<p class="error">해당하는 관광지를 찾을 수 없습니다.</p>');
                     } else {
                         appendMessage("bot-message", '<p class="error">오류가 발생했습니다. 다시 시도해 주세요.</p>');
                     }
@@ -128,25 +94,136 @@
         });
     });
 
-    // 메시지를 화면에 추가하는 함수, bot-message에만 딜레이 추가
+    // 응답 처리 함수
+    function handleResponse(response) {
+        if (!response) {
+            appendMessage("bot-message", '<p class="error">응답을 처리할 수 없습니다.</p>');
+            return;
+        }
+
+        try {
+            switch (response.response_type) {
+                case "detail":
+                    appendDetailMessage(response.data);
+                    break;
+                case "field":
+                    appendFieldMessage(response.data);
+                    break;
+                case "suggestions":
+                    appendSuggestionMessage(response.data, response.message);
+                    break;
+                default:
+                    appendMessage("bot-message", '<p class="error">알 수 없는 응답 형식입니다.</p>');
+            }
+        } catch (e) {
+            console.error('Response handling error:', e);
+            appendMessage("bot-message", '<p class="error">응답 처리 중 오류가 발생했습니다.</p>');
+        }
+    }
+
+    // 특정 필드 정보 메시지 추가
+    function appendFieldMessage(data) {
+        let fieldContent = '';
+
+        if (typeof data.field_value === 'object' && data.field_value !== null) {
+            // tags와 같은 객체인 경우
+            const tagsList = Object.entries(data.field_value).map(([key, value]) => {
+                // 값이 ','로 구분된 경우 공백으로 변경
+                if (typeof value === 'string' && value.includes(',')) {
+                    value = value.replace(/,/g, ' ');  // ','를 ' '로 치환
+                }
+
+                if (key === '링크') {
+                    return `<li>${key}: <a href="${value}" target="_blank">${value}</a></li>`;
+                }
+                return `<li>${key}: ${value}</li>`;
+            }).join('');
+            fieldContent = `<ul>${tagsList}</ul>`;
+        } else {
+            // field_value가 링크인 경우 (문자열 형태로 전달된 링크)
+            if (data.field_name === '링크' && data.field_value !== null) {
+                // 유효한 URL이라면 a 태그로 감싸기
+                fieldContent = `<a href="${data.field_value}" target="_blank">${data.field_value}</a>`;
+            } else {
+                // 값이 ','로 구분된 경우 공백으로 변경
+                if (typeof value === 'string' && value.includes(',')) {
+                    value = value.replace(/,/g, ' ');  // ','를 ' '로 치환
+                }
+                // 일반 텍스트인 경우 그대로 표시
+                fieldContent = data.field_value;
+            }
+        }
+
+        const resultMessage = `
+            <h3>${data.touristspot_name}</h3>
+            <p>${data.field_name}: ${fieldContent}</p>
+        `;
+        appendMessage("bot-message", resultMessage);
+    }
+
+    // 상세 정보 메시지 추가
+    function appendDetailMessage(data) {
+        const tagsList = Object.entries(data.tags).map(([key, value]) => {
+            // 값이 ','로 구분된 경우 공백으로 변경
+            if (typeof value === 'string' && value.includes(',')) {
+                value = value.replace(/,/g, ' ');  // ','를 ' '로 치환
+            }
+
+            if (key === '링크') {
+                return `<li>${key}: <a href="${value}" target="_blank">${value}</a></li>`;
+            }
+            return `<li>${key}: ${value}</li>`;
+        }).join('');
+
+        const resultMessage = `
+            <h3>${data.touristspot_name}</h3>
+            <p>주 카테고리: ${data.main_category}</p>
+            <p>세부 카테고리: ${data.second_category}</p>
+            <p>설명: ${data.description}</p>
+            <p>태그:</p>
+            <ul>${tagsList}</ul>
+        `;
+        appendMessage("bot-message", resultMessage);
+    }
+
+    // 추천 목록 메시지 추가
+    function appendSuggestionMessage(suggestions, message) {
+        const suggestionsList = suggestions.map(spot => `
+            <div class="suggestion-item">
+                <h4>${spot.touristspot_name}</h4>
+                <p>주 카테고리: ${spot.main_category}</p>
+                <p>세부 카테고리: ${spot.second_category}</p>
+            </div>
+        `).join('');
+
+        const resultMessage = `
+            <p>${message}</p>
+            <div class="suggestions-container">
+                ${suggestionsList}
+            </div>
+        `;
+        appendMessage("bot-message", resultMessage);
+    }
+
+    // 메시지를 화면에 추가하는 함수
     function appendMessage(messageType, messageContent) {
         const chatBox = document.getElementById("chat-box");
         const messageElement = document.createElement("div");
         messageElement.classList.add("message", messageType);
-        messageElement.innerHTML = "...";  // 초기 설정
+        messageElement.innerHTML = "...";
 
-        // 메시지를 즉시 chatBox에 추가
         chatBox.appendChild(messageElement);
         chatBox.scrollTop = chatBox.scrollHeight;
 
         if (messageType === "bot-message") {
             setTimeout(() => {
-                messageElement.innerHTML = messageContent;  // 0.5초 후에 메시지 내용 표시
-            }, 1000);  // 1초 딜레이
+                messageElement.innerHTML = messageContent;
+            }, 1000);
         } else {
-            messageElement.innerHTML = messageContent;  // 봇 메시지가 아닐 때는 바로 내용 표시
+            messageElement.innerHTML = messageContent;
         }
     }
     </script>
+
 </body>
 </html>
