@@ -685,7 +685,7 @@ def calculate_recommendation_scores():
     Recommendation.objects.filter(user__in=users).delete()
     Recommendation.objects.bulk_create(recommendation_objects)
 
-    return recommendation_objects
+    print("Calculated recommendation scores inserted successfully.")
 
 
 
@@ -707,7 +707,7 @@ if __name__ == "__main__":
 
 
     # 추천 점수
-    recommendation_objects = calculate_recommendation_scores()
+    calculate_recommendation_scores()
 
 
 
