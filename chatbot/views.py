@@ -105,19 +105,22 @@ def identify_field_query(query):
 
 
 def search_logic(query):
+    # 형태소 분석기 Okt 사용하여 명사 추출
+    # query_nouns = extract_nouns(query)
+    # spots = None
+    # for noun in query_nouns:
+    #     spots = all_spots.annotate(
+    #         similarity=TrigramSimilarity('touristspot_name', noun)
+    #     )
+    #     .filter(similarity__gt=0.1
+    #     .order_by('-similarity')
+    #     )
+    # if spots.exists():
+    #     spot = spots.first()
+    #     break  # 첫 번째 일치하는 결과만 찾기
+
     all_spots = TouristSpot.objects.all()
     spots = [spot for spot in all_spots if spot.touristspot_name in query]
-
-    # query_nouns = extract_nouns(query)
-    #
-    # for noun in query_nouns:
-    #     spot = all_spots.annotate(
-    #         similarity=TrigramSimilarity('touristspot_name', noun)
-    #     ).filter(similarity__gt=0.1)
-    #
-    #     if spot.exists():
-    #         break  # 첫 번째 일치하는 결과만 찾기
-
     if spots:
         spot = spots[0]
         # 관광지 이름이 포함된 경우
@@ -130,11 +133,11 @@ def search_logic(query):
             # 일반적인 상세 정보 요청
             return format_detailed_response(spot)
     else:
-        # 관광지 이름이 없는 경우 연관된 관광지 목록 반환
+        # 관광지 이름이 없는 경우
         similar_spots = (
             TouristSpot.objects
             .annotate(
-                similarity=ExpressionWrapper(
+                similarity=ExpressionWrapper( # Postgres의 유사도 검사 사용
                         Coalesce(TrigramSimilarity('touristspot_name', query), 0) * 2.0 +
                         Coalesce(TrigramSimilarity('main_cate', query), 0) * 1.5 +
                         Coalesce(TrigramSimilarity('second_cate', query), 0) * 1.5 +
@@ -148,8 +151,8 @@ def search_logic(query):
             .distinct()  # 중복제거
             .order_by('-similarity')[:10]
         )
-
         if similar_spots:
+            # 관광지 이름이 없는 경우 연관된 관광지 목록 반환
             return format_suggestion_response(similar_spots)
         return None
 
