@@ -4,7 +4,7 @@
 <div class="tour-card">
     <a href="{% url 'recommend:tour_info' item.recommendation.visit.id %}" class="tour-card-link">
         {% if item.recommendation.visit.photos %}
-            <img src="{{ item.recommendation.visit.photos }}" alt="{{ item.recommendation.visit.visit_name }}" class="tour-image">
+            <img src="{{ item.recommendation.visit.photos.url }}" alt="{{ item.recommendation.visit.visit_name }}" class="tour-image">
         {% else %}
             <img src="{% static 'recommend/images/no_image.png' %}" alt="{{ item.recommendation.visit.visit_name }}" class="tour-image">
         {% endif %}
