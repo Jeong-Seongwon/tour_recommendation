@@ -108,44 +108,44 @@ def insert_visits_from_csv():
     print("All visit data inserted successfully.")
 
 
-def insert_travels_from_csv():
-    rel_cd = {
-        "1": '배우자',
-        "2": '자녀',
-        "3": '부모',
-        "4": '조부모',
-        "5": '형제 / 자매',
-        "6": '친인척',
-        "7": '친구',
-        "8": '연인',
-        "9": '동료',
-        "10": "친목 단체/모임(동호회, 종교단체 등)",
-        "11": '기타'
-    }
-    travel_purpose = {
-        "1": '쇼핑',
-        "2": '테마파크 / 놀이시설 / 동.식물원 방문',
-        "3": '역사 유적지 방문',
-        "4": '시티투어',
-        "5": "야외 스포츠 / 레포츠 활동",
-        "6": '지역 문화예술 / 공연 / 전시시설 관람',
-        "7": '유흥 / 오락(나이트라이프)',
-        "8": '캠핑',
-        "9": '지역 축제 / 이벤트 참가',
-        "10": '온천 / 스파',
-        "11": '교육 / 체험 프로그램 참가',
-        "12": '드라마 촬영지 방문',
-        "13": '종교 / 성지 순례',
-        "21": 'Well-ness 여행',
-        "22": 'SNS 인생샷 여행',
-        "23": '호캉스 여행',
-        "24": '신규 여행지 발굴',
-        "25": '반려동물 동반 여행',
-        "26": '인플루언서 따라하기 여행',
-        "27": '친환경 여행(플로깅 여행)',
-        "28": '등반 여행',
-    }
+rel_cd = {
+    "1": '배우자',
+    "2": '자녀',
+    "3": '부모',
+    "4": '조부모',
+    "5": '형제 / 자매',
+    "6": '친인척',
+    "7": '친구',
+    "8": '연인',
+    "9": '동료',
+    "10": "친목 단체/모임(동호회, 종교단체 등)",
+    "11": '기타'
+}
+travel_purpose = {
+    "1": '쇼핑',
+    "2": '테마파크 / 놀이시설 / 동.식물원 방문',
+    "3": '역사 유적지 방문',
+    "4": '시티투어',
+    "5": "야외 스포츠 / 레포츠 활동",
+    "6": '지역 문화예술 / 공연 / 전시시설 관람',
+    "7": '유흥 / 오락(나이트라이프)',
+    "8": '캠핑',
+    "9": '지역 축제 / 이벤트 참가',
+    "10": '온천 / 스파',
+    "11": '교육 / 체험 프로그램 참가',
+    "12": '드라마 촬영지 방문',
+    "13": '종교 / 성지 순례',
+    "21": 'Well-ness 여행',
+    "22": 'SNS 인생샷 여행',
+    "23": '호캉스 여행',
+    "24": '신규 여행지 발굴',
+    "25": '반려동물 동반 여행',
+    "26": '인플루언서 따라하기 여행',
+    "27": '친환경 여행(플로깅 여행)',
+    "28": '등반 여행',
+}
 
+def insert_travels_from_csv():
     travel_file_path = "data/recommend/tn_travel_여행_E.csv"
     companion_file_path = "data/recommend/tn_companion_info_동반자정보_E.csv"
     visit_file_path = "data/recommend/tn_visit_area_info_방문지정보_E.csv"
@@ -609,7 +609,6 @@ def calculate_recommendation_scores():
     # numpy 배열로 변환하여 유사도 계산에 사용할 수 있도록 함
     user_visit_matrix = np.array(user_visit_matrix)
     user_consume_matrix = np.array(user_consume_matrix)
-
     # 사용자 간 방문 기록의 코사인 유사도 계산
     visit_similarity = cosine_similarity(user_visit_matrix)
     # 사용자 간 소비 기록의 코사인 유사도 계산
@@ -639,15 +638,12 @@ def calculate_recommendation_scores():
 
                 # 사용자와 비교 사용자 간의 추가 정보 기반 유사도 가중치
                 additional_weight = 1.0
-
                 # 거주 지역이 같은 경우 추가 가중치
                 if user_residence_area and user_residence_area == other_user_data['residence_area']:
                     additional_weight += 0.2  # 거주 지역이 같으면 가중치 증가
-
                 # 성별이 같은 경우 추가 가중치
                 if user_gender and user_gender == other_user_data['gender']:
                     additional_weight += 0.1  # 성별이 같으면 가중치 증가
-
                 # 나이 차이가 10세 이하인 경우 추가 가중치
                 if user_age and other_user_data['age']:
                     age_difference = abs(user_age - other_user_data['age'])
@@ -661,12 +657,6 @@ def calculate_recommendation_scores():
                         purpose_weight = 1.5 if user_purposes & other_user_data['purposes'] else 1.0
                         # 유사도와 가중치를 반영하여 점수 계산
                         visit_scores[visit] += similarity * purpose_weight * additional_weight
-
-        # # 이미 방문한 장소에 대한 가중치 부여 (추천에서 우선순위가 낮아짐)
-        # VISITED_PLACE_WEIGHT = 2.0
-        # for visit in user_visits:
-        #     visit_scores[visit] *= VISITED_PLACE_WEIGHT
-
         # 추천 점수를 0~1 사이로 정규화
         max_score = max(visit_scores.values()) if visit_scores else 1
         normalized_scores = {visit: score / max_score for visit, score in visit_scores.items()}
@@ -701,15 +691,10 @@ if __name__ == "__main__":
     # # chatbot 정보
     # insert_touristspot_from_json()
     #
-    #
     # 인기 여행지 정보
     create_popular_tours()
 
-
     # 추천 점수
     calculate_recommendation_scores()
-
-
-
 
     exit()
