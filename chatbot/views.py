@@ -201,8 +201,6 @@ def format_suggestion_response(results):
     suggestions = [
         {
             "touristspot_name": spot.touristspot_name,
-            "main_category": spot.main_cate,
-            "second_category": spot.second_cate
         }
         for spot in results
     ]
