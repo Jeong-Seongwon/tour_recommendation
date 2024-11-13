@@ -8,7 +8,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from django.core.serializers.json import DjangoJSONEncoder
-from konlpy.tag import Okt
+# from konlpy.tag import Okt
 
 
 
@@ -21,6 +21,7 @@ def chatbot(request):
         user_input = request.POST.get('user-input')  # 폼 데이터를 사용할 경우
 
         response_data = search_logic(user_input)
+        # print(response_data)
 
         if response_data:
             initial_message = user_input
@@ -43,7 +44,7 @@ def search_tourist_spot(request):
             return JsonResponse({"error": "No query provided."}, status=400)
 
         response_data = search_logic(search_query)
-        print(response_data)
+        # print(response_data)
 
         if response_data:
             return JsonResponse(response_data)
@@ -95,35 +96,31 @@ def identify_field_query(query):
     return None  # 필드를 찾을 수 없으면 None 반환
 
 
-# 형태소 분석기를 사용하여 명사만 추출
-def extract_nouns(text):
-    okt = Okt()
-    # 텍스트에서 명사만 추출
-    nouns = okt.nouns(text)
-    return nouns
+# # 형태소 분석기를 사용하여 명사만 추출
+# def extract_nouns(text):
+#     okt = Okt()
+#     # 텍스트에서 명사만 추출
+#     nouns = okt.nouns(text)
+#     return nouns
 
 
 def search_logic(query):
-    # query에서 명사만 추출
-    query_nouns = extract_nouns(query)
-    print(query)
-    print(query_nouns)
     all_spots = TouristSpot.objects.all()
-    spots = None
 
-    # TrigramSimilarity를 이용해 의미 있는 관광지 검색
-    for noun in query_nouns:
-        spots = all_spots.annotate(
-            similarity=TrigramSimilarity('touristspot_name', noun)
-        ).filter(similarity__gt=0.1)
+    spot = all_spots.filter(touristspot_name__icontains=query)
 
-        if spots.exists():
-            print(noun)
-            break  # 첫 번째 일치하는 결과만 찾기
+    # query_nouns = extract_nouns(query)
+    #
+    # for noun in query_nouns:
+    #     spot = all_spots.annotate(
+    #         similarity=TrigramSimilarity('touristspot_name', noun)
+    #     ).filter(similarity__gt=0.1)
+    #
+    #     if spot.exists():
+    #         break  # 첫 번째 일치하는 결과만 찾기
 
-    if spots.exists():
+    if spot.exists():
         # 관광지 이름이 포함된 경우
-        spot = spots.first()
         requested_field = identify_field_query(query)
 
         if requested_field:
@@ -165,7 +162,6 @@ def format_field_response(result, field):
         'description': '설명',
         'tags': '속성'
     }
-    print(field)
 
     if field == 'tags':
         field_value = result.tags
