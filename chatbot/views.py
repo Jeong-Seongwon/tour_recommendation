@@ -1,5 +1,5 @@
 from django.contrib.postgres.search import TrigramSimilarity
-from django.db.models import ExpressionWrapper, FloatField
+from django.db.models import ExpressionWrapper, FloatField, Value, CharField
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
@@ -44,7 +44,7 @@ def search_tourist_spot(request):
             return JsonResponse({"error": "No query provided."}, status=400)
 
         response_data = search_logic(search_query)
-        # print(response_data)
+        print(response_data)
 
         if response_data:
             return JsonResponse(response_data)
@@ -106,8 +106,7 @@ def identify_field_query(query):
 
 def search_logic(query):
     all_spots = TouristSpot.objects.all()
-
-    spot = all_spots.filter(touristspot_name__icontains=query)
+    spots = [spot for spot in all_spots if spot.touristspot_name in query]
 
     # query_nouns = extract_nouns(query)
     #
@@ -119,7 +118,8 @@ def search_logic(query):
     #     if spot.exists():
     #         break  # 첫 번째 일치하는 결과만 찾기
 
-    if spot.exists():
+    if spots:
+        spot = spots[0]
         # 관광지 이름이 포함된 경우
         requested_field = identify_field_query(query)
 
