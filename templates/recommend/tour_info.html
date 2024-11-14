@@ -43,7 +43,7 @@
         <section class="tour-content">
             <div class="tour-gallery">
                 {% if visit.photos %}
-                    <img src="{{ visit.photos }}" alt="{{ visit.visit_name }}" class="main-image">
+                    <img src="{{ visit.photos.url }}" alt="{{ visit.visit_name }}" class="main-image">
                 {% else %}
                     <img src="{% static 'recommend/images/no_image.png' %}" alt="{{ visit.visit_name }}" class="main-image">
                 {% endif %}
