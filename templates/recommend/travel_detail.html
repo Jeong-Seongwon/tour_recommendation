@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="{% static 'recommend/css/travel_detail.css' %}">
 
     {% load humanize %}
-
 </head>
 <body>
     {% include 'navbar.html' %}
@@ -18,13 +17,16 @@
         <h4>내 여행 목록</h4>
         <ul>
             {% for travel in user_travels %}
-                <li><a href="{% url 'recommend:travel_detail' travel.travel_id %}">{{ travel.travel_id }} - {{ travel.start_date|date:"Y.m.d" }}~{{ travel.end_date|date:"Y.m.d" }}</a></li>
+                {% if travel.travel_id %}  {# Only show if travel_id exists #}
+                    <li><a href="{% url 'recommend:travel_detail' travel.travel_id %}">{{ travel.travel_id }} - {{ travel.start_date|date:"Y.m.d" }}~{{ travel.end_date|date:"Y.m.d" }}</a></li>
+                {% endif %}
             {% empty %}
                 <li>여행 정보가 없습니다.</li>
             {% endfor %}
         </ul>
     </div>
 
+    {% if travel %}  {# Only show if travel exists #}
     <div class="container">
         <div class="card">
             <div class="card-header">
@@ -52,15 +54,18 @@
                     </div>
                 </div>
 
-                <!-- 방문 장소 목록 -->
                 <div class="visit-list">
                     <h5>방문 예정지</h5>
                     <ul class="list-group">
                         {% for visit in travel.visits.all %}
                             <li class="list-group-item">
-                                <a href="{% url 'recommend:tour_info' visit.id %}">
+                                {% if visit.id %}  {# Check if visit.id exists #}
+                                    <a href="{% url 'recommend:tour_info' visit.id %}">
+                                        {{ visit.visit_name }}
+                                    </a>
+                                {% else %}
                                     {{ visit.visit_name }}
-                                </a>
+                                {% endif %}
                             </li>
                         {% endfor %}
                     </ul>
@@ -68,7 +73,6 @@
             </div>
         </div>
 
-        <!-- 소비 정보 카드 -->
         <div class="card">
             {% if consumes %}
                 <div class="card-header">
@@ -76,8 +80,6 @@
                 </div>
                 <div class="card-body">
                     <h4 class="text-primary">총 금액: {{ total_amount|intcomma }}원</h4>
-
-                    <!-- 카테고리별 비용 -->
                     <div class="row">
                         <div class="card-details">
                             <h5>카테고리별 비용</h5>
@@ -91,27 +93,29 @@
                             </ul>
                         </div>
                     </div>
-
+                </div>
             {% else %}
                 <div class="card-header">
                     <h3>예상 소비 금액 분석</h3>
                 </div>
                 <div class="card-body">
                     <h4 class="text-primary">총 예상 금액: {{ predicted_amount|intcomma }}원</h4>
-
                     <div class="row">
                         <div class="card-details">
                             <h5>카테고리별 예상 비용</h5>
                             <ul class="list-group">
-                                {% for category, amount in prediction_details.expense_details.items %}
-                                <li class="list-group-item">
-                                    {{ category|title }}
-                                    <span>{{ amount|intcomma }}원</span>
-                                </li>
-                                {% endfor %}
+                                {% if prediction_details and prediction_details.expense_details %}
+                                    {% for category, amount in prediction_details.expense_details.items %}
+                                    <li class="list-group-item">
+                                        {{ category|title }}
+                                        <span>{{ amount|intcomma }}원</span>
+                                    </li>
+                                    {% endfor %}
+                                {% endif %}
                             </ul>
                         </div>
 
+                        {% if prediction_details %}
                         <div class="card-details">
                             <h5>예측 신뢰도</h5>
                             <div class="progress">
@@ -126,15 +130,16 @@
                                 * 신뢰도는 유사한 여행 데이터 {{ prediction_details.similar_travels_count }}건을 기반으로 계산되었습니다.
                             </small>
                         </div>
-                    </div>
 
-                    <div class="alert-info">
-                        <h5>예측 기준</h5>
-                        <ul class="alert-info-list">
-                            <li>여행 기간: {{ prediction_details.travel_days }}일</li>
-                            <li>방문 예정지: {{ prediction_details.visit_count }}곳</li>
-                            <li>유사 여행 데이터: {{ prediction_details.similar_travels_count }}건</li>
-                        </ul>
+                        <div class="alert-info">
+                            <h5>예측 기준</h5>
+                            <ul class="alert-info-list">
+                                <li>여행 기간: {{ prediction_details.travel_days }}일</li>
+                                <li>방문 예정지: {{ prediction_details.visit_count }}곳</li>
+                                <li>유사 여행 데이터: {{ prediction_details.similar_travels_count }}건</li>
+                            </ul>
+                        </div>
+                        {% endif %}
                     </div>
 
                     <small class="text-muted">
@@ -144,6 +149,12 @@
             {% endif %}
         </div>
     </div>
-
+    {% else %}
+    <div class="container">
+        <div class="alert alert-info">
+            <p>여행 정보가 없습니다. 새로운 여행을 생성해주세요.</p>
+        </div>
+    </div>
+    {% endif %}
 </body>
 </html>

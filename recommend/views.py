@@ -194,6 +194,16 @@ def create_travel_from_planned_visits(request):
         if form.is_valid():
             travel = form.save(commit=False)
             travel.traveler = request.user  # 로그인된 사용자 설정
+
+            # 가장 최근 travel_id를 가져와 새로운 ID 생성
+            last_travel = Travel.objects.order_by('-travel_id').first()
+            if last_travel and last_travel.travel_id.isdigit():
+                new_id = int(last_travel.travel_id) + 1
+            else:
+                new_id = 1  # 첫 번째 여행이라면 ID를 1로 시작
+
+            travel.travel_id = str(new_id)
+
             travel.save()
             travel.visits.set(visits)  # 방문지 설정
 
@@ -218,43 +228,47 @@ def travel_detail(request, travel_id=None):
     user = request.user
     user_travels = Travel.objects.filter(traveler=user)
 
-    # travel_id가 None이면 사용자의 마지막 여행을 가져옴
-    if travel_id is None:
-        travel = user_travels.order_by('-travel_id').first()  # 마지막 여행
-    else:
-        travel = get_object_or_404(Travel, travel_id=travel_id)
+    try:
+        if travel_id is None:
+            travel = user_travels.order_by('-travel_id').first()
+            if travel is None:
+                # No travels exist
+                return render(request, 'recommend/travel_detail.html', {
+                    'user_travels': user_travels,
+                    'travel': None
+                })
+        else:
+            travel = get_object_or_404(Travel, travel_id=travel_id, traveler=user)
 
-    # 여행 이름을 쉼표로 분리하여 리스트로 만듬
-    travel_names = [name.strip() for name in travel.travel_name.split(',')]
+        # Rest of your existing view code...
+        travel_names = [name.strip() for name in travel.travel_name.split(',')]
+        consumes = Consume.objects.filter(travel=travel)
+        predicted_amount = 0
+        prediction_details = None
+        total_amount = sum(consume.payment_amount for consume in consumes)
 
-    # 소비 정보 가져오기
-    consumes = Consume.objects.filter(travel=travel)
+        category_expenses = {}
+        if consumes:
+            for consume in consumes:
+                category = consume.category
+                category_expenses[category] = category_expenses.get(category, 0) + consume.payment_amount
+        else:
+            predicted_amount, prediction_details = predict_travel_expenses(travel)
 
-    # 예산 예측 관련 변수 초기화
-    predicted_amount = 0
-    prediction_details = None
+        context = {
+            'user_travels': user_travels,
+            'travel': travel,
+            'travel_names': travel_names,
+            'consumes': consumes,
+            'total_amount': total_amount,
+            'category_expenses': category_expenses,
+            'predicted_amount': predicted_amount,
+            'prediction_details': prediction_details,
+        }
+        return render(request, 'recommend/travel_detail.html', context)
 
-    # 소비가 있을 경우 총 금액 계산
-    total_amount = sum(consume.payment_amount for consume in consumes)
-
-    # 카테고리별 소비 금액 계산
-    category_expenses = {}
-    if consumes:
-        for consume in consumes:
-            category = consume.category
-            category_expenses[category] = category_expenses.get(category, 0) + consume.payment_amount
-    else:
-        # 소비 정보가 없으면 예산 예측
-        predicted_amount, prediction_details = predict_travel_expenses(travel)
-
-    context = {
-        'user_travels': user_travels,
-        'travel': travel,
-        'travel_names': travel_names,
-        'consumes': consumes,
-        'total_amount': total_amount,
-        'category_expenses': category_expenses,
-        'predicted_amount': predicted_amount,
-        'prediction_details': prediction_details,
-    }
-    return render(request, 'recommend/travel_detail.html', context)
+    except Travel.DoesNotExist:
+        return render(request, 'recommend/travel_detail.html', {
+            'user_travels': user_travels,
+            'travel': None
+        })

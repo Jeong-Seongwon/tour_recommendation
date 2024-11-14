@@ -105,18 +105,18 @@ def predict_travel_expenses(travel):
     # 유사 여행 찾기 기본 쿼리
     similar_travels = Travel.objects.annotate(
         duration=ExpressionWrapper(
-            F('travel.end_date') - F('travel.start_date'),
+            F('end_date') - F('start_date'),
             output_field=DurationField()
         ),
-        month=ExtractMonth('travel.start_date'),
-        visit_count=Count('travel.visits')
+        month=ExtractMonth('start_date'),
+        visit_count=Count('visits')
     )
 
     # 1단계: 가장 엄격한 조건으로 유사 여행 찾기
     strict_conditions = similar_travels.filter(
         duration__range=(travel_days - 1, travel_days + 1),
         month__range=(travel_month - 1, travel_month + 1),
-        visit_count__range=(len(travel.visits) - 1, len(travel.visits) + 1),
+        visit_count__range=(travel.visits.count() - 1, travel.visits.count() + 1),
         visits__address__in=visit_areas,
         companion_num__range=(max(0, travel.companion_num - 1), travel.companion_num + 1)
     )
@@ -133,7 +133,7 @@ def predict_travel_expenses(travel):
         relaxed_conditions = similar_travels.filter(
             duration__range=(travel_days - 2, travel_days + 2),
             month__range=(travel_month - 2, travel_month + 2),
-            visit_count__range=(len(travel.visits) - 2, len(travel.visits) + 2),
+            visit_count__range=(travel.visits.count() - 2, travel.visits.count() + 2),
             visits__address__in=visit_areas
         )
 
@@ -217,7 +217,7 @@ def predict_travel_expenses(travel):
         base_costs = {
             'transportation': 50000 * travel_days,
             'lodging': 100000 * (travel_days - 1),
-            'activity': 30000 * len(travel.visits),
+            'activity': 30000 * travel.visits.count(),
             'advance': 20000 * travel_days
         }
         person_coefficient = calculate_person_coefficient(travel.companion_num + 1, 2)  # 기본값은 2인 여행 기준
@@ -244,7 +244,7 @@ def predict_travel_expenses(travel):
         'similar_travels_count': similar_travels.count(),
         'confidence_score': round(confidence_score, 1),
         'travel_days': travel_days,
-        'visit_count': len(travel.visits),
+        'visit_count': travel.visits.count(),
         'companion_info': {
             'number': travel.companion_num,
             'travel.relationship': travel.relationship
@@ -254,7 +254,7 @@ def predict_travel_expenses(travel):
             'avg_companion_num': float(similar_travels.aggregate(
                 Avg('companion_num'))['companion_num__avg'] or 0),
             'common_movement': similar_travels.values('movement_name').annotate(
-                count=Count('id')).order_by('-count').first()
+                count=Count('pk')).order_by('-count').first()
         }
     }
 
