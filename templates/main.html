@@ -81,8 +81,23 @@
             });
         }
 
-        loadPopTours()
+        // AJAX로 고객 추천 목록 가져오기
+        function loadCustomers() {
+            // AJAX 요청
+            $.ajax({
+                url: `{% url 'recommend:recommend_tours' %}`, // 모델을 쿼리로 전달
+                method: "GET",
+                success: function(data) {
+                    $('#customer-list').html(data.customers_html); // AJAX로 가져온 HTML을 삽입
+                },
+                error: function(error) {
+                    $('#customer-list').html("<p>Error loading recommendations</p>"); // 오류 메시지
+                }
+            });
+        }
 
+        loadPopTours()
+        loadCustomers()
 
         // JavaScript for scrolling functionality
         function scrollLeft() {
@@ -106,22 +121,7 @@
 
 
 
-        // AJAX로 고객 추천 목록 가져오기
-        function loadCustomers() {
-            // AJAX 요청
-            $.ajax({
-                url: `{% url 'recommend:recommend_tours' %}`, // 모델을 쿼리로 전달
-                method: "GET",
-                success: function(data) {
-                    $('#customer-list').html(data.customers_html); // AJAX로 가져온 HTML을 삽입
-                },
-                error: function(error) {
-                    $('#customer-list').html("<p>Error loading recommendations</p>"); // 오류 메시지
-                }
-            });
-        }
 
-        loadCustomers()
 
         // JavaScript for scrolling functionality
         function recommend_scrollLeft() {
