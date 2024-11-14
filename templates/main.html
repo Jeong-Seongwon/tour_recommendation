@@ -24,12 +24,20 @@
     </div>
 
 
+   <div class="category-div">
+        {% for purpose in TRAVEL_PURPOSE_CHOICES.values %}
+            <button class="category-button" id="category-{{ purpose }}">{{ purpose }}</button>
+        {% endfor %}
+   </div>
+
+
+
     <!-- Main Content (Top-rated movies and customer recommendations) -->
     <div class="content">
 
         <!-- Section 1 : Top Rated Movies -->
         <div class="section">
-            <h1>Top Rated Tours <a href="{% url 'recommend:tour' %}" class="more-link">더보기</a></h1>
+            <h1>Top Rated Visits <a href="{% url 'recommend:tour' %}" class="more-link">더보기</a></h1>
             <button class="scroll-button left" id="scroll-left">&#10094;</button>
             <button class="scroll-button right" id="scroll-right">&#10095;</button>
             <div class="tour-container" id="tour-list">
@@ -38,7 +46,7 @@
             </div>
         </div>
 
-
+        {% if user.is_authenticated %}
         <!-- Section 2 : Customer Recommendations -->
         <div class="section">
             <h1>Customer Recommendations <a href="{% url 'recommend:customer' %}" class="more-link">더보기</a></h1>
@@ -51,7 +59,7 @@
                 </div>
             </div>
         </div>
-
+        {% endif %}
 
     </div>
 
@@ -133,6 +141,17 @@
         // Attach event listeners to scroll buttons
         document.getElementById('scroll-left-customers').addEventListener('click', recommend_scrollLeft);
         document.getElementById('scroll-right-customers').addEventListener('click', recommend_scrollRight);
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const buttons = document.querySelectorAll('.category-button');
+
+            buttons.forEach(button => {
+                button.addEventListener('click', function () {
+                    // 클릭된 버튼에 active 클래스가 있으면 제거, 없으면 추가
+                    this.classList.toggle('active');
+                });
+            });
+        });
 
     </script>
 </body>
